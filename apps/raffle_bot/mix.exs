@@ -24,7 +24,7 @@ defmodule RaffleBot.MixProject do
   def application do
     [
       mod: {RaffleBot.Application, []},
-      extra_applications: [:logger, :runtime_tools, :nostrum, :ecto_sqlite3, :jason, :swoosh]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -51,10 +51,10 @@ defmodule RaffleBot.MixProject do
       {:gettext, "~> 0.20"},
       {:plug_cowboy, "~> 2.5"},
       # App-specific dependencies
-      {:jason, in_umbrella: true},
-      {:nostrum, in_umbrella: true},
-      {:ecto_sqlite3, in_umbrella: true},
-      {:swoosh, in_umbrella: true},
+      {:jason, "~> 1.0"},
+      {:nostrum, "~> 0.7"},
+      {:ecto_sqlite3, "~> 0.10"},
+      {:swoosh, "~> 1.11"},
       {:mox, "~> 1.0", only: :test}
     ]
   end
