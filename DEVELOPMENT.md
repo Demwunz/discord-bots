@@ -66,7 +66,7 @@ All commands should generally be run from the **root** of the umbrella project u
 To start the bot (and the Phoenix server):
 ```bash
 iex -S mix phx.server
-````
+```
 
   * *Note:* `iex` gives you an interactive shell where you can debug the running bot.
 
@@ -81,9 +81,7 @@ iex -S mix phx.server
     mix test apps/raffle_bot/test/raffle_bot/raffles_test.exs
     ```
 
------
-
-## 4\. Deployment (Fly.io)
+### 4. Deployment (Fly.io)
 
 Deployment is handled via the `flyctl` CLI.
 
