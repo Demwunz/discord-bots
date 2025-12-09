@@ -24,7 +24,7 @@ defmodule RaffleBot.MixProject do
   def application do
     [
       mod: {RaffleBot.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :nostrum, :hackney, :swoosh]
     ]
   end
 
@@ -55,6 +55,7 @@ defmodule RaffleBot.MixProject do
       {:nostrum, "~> 0.7"},
       {:ecto_sqlite3, "~> 0.10"},
       {:swoosh, "~> 1.11"},
+      {:hackney, "~> 1.9"},
       {:mox, "~> 1.0", only: :test}
     ]
   end

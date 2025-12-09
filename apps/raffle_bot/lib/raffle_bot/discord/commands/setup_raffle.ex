@@ -4,60 +4,68 @@ defmodule RaffleBot.Discord.Commands.SetupRaffle do
   """
 
   alias Nostrum.Api
-  alias Nostrum.Struct.Interaction
-  alias Nostrum.Struct.Component.{ActionRow, TextInput}
 
   def handle(interaction) do
     modal = %{
       title: "Raffle Setup",
       custom_id: "raffle_setup_modal",
       components: [
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %TextInput{
+            %{
+              type: 4,
               custom_id: "title",
               label: "Title",
-              style: :short,
+              style: 1,
               required: true
             }
           ]
         },
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %TextInput{
+            %{
+              type: 4,
               custom_id: "price",
               label: "Price",
-              style: :short,
+              style: 1,
               required: true
             }
           ]
         },
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %TextInput{
+            %{
+              type: 4,
               custom_id: "total_spots",
               label: "Total Spots",
-              style: :short,
+              style: 1,
               required: true
             }
           ]
         },
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %TextInput{
+            %{
+              type: 4,
               custom_id: "photo_url",
               label: "Photo URL",
-              style: :short,
+              style: 1,
               required: true
             }
           ]
         },
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %TextInput{
+            %{
+              type: 4,
               custom_id: "description",
               label: "Description",
-              style: :paragraph,
+              style: 2,
               required: true
             }
           ]

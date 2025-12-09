@@ -6,7 +6,6 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
   alias Nostrum.Api
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
-  alias Nostrum.Struct.Component.{ActionRow, SelectMenu}
 
   def handle(%Interaction{data: %{"values" => [raffle_id]}} = interaction) do
     claims = Claims.get_claims_by_raffle(raffle_id)
@@ -22,7 +21,8 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
         }
       end)
 
-    select_menu = %SelectMenu{
+    select_menu = %{
+      type: 3,
       custom_id: "mark_paid_user_select",
       placeholder: "Select users to mark as paid",
       options: options,
@@ -34,7 +34,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
       type: 4,
       data: %{
         content: "Please select the users to mark as paid.",
-        components: [%ActionRow{components: [select_menu]}],
+        components: [%{type: 1, components: [select_menu]}],
         flags: 64
       }
     })

@@ -4,9 +4,6 @@ defmodule RaffleBot.Discord.Commands.EndRaffle do
   """
 
   alias Nostrum.Api
-  alias Nostrum.Struct.Interaction
-  alias RaffleBot.Raffles
-
   def handle(interaction) do
     # TODO: Fetch active raffles and present them in a dropdown
     Api.create_interaction_response(interaction, %{

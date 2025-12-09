@@ -7,8 +7,16 @@ defmodule RaffleBot.Discord.Selects.ClaimSpot do
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
 
-  def handle(interaction) do
-    # TODO: Create the claims and update the raffle embed
+  def handle(%Interaction{data: %{"values" => spots, "custom_id" => "claim_spot_select_" <> raffle_id}, member: %{user: %{id: user_id}}} = interaction) do
+    for spot <- spots do
+      Claims.create_claim(%{
+        raffle_id: raffle_id,
+        user_id: user_id,
+        spot_number: spot
+      })
+    end
+
+    # TODO: Update the raffle embed
     Api.create_interaction_response(interaction, %{
       type: 4,
       data: %{

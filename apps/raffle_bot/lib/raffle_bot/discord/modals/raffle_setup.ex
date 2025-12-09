@@ -24,7 +24,7 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
           }
         })
 
-      {:error, changeset} ->
+      {:error, _changeset} ->
         # TODO: Handle error
         Api.create_interaction_response(interaction, %{
           type: 4,

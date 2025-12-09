@@ -9,9 +9,8 @@ defmodule RaffleBot.Application do
   def start(_type, _args) do
     children = [
       RaffleBot.Repo,
-      Nostrum.Application,
       RaffleBot.Discord.Consumer,
-      # RaffleBot.Scheduler
+      RaffleBot.Scheduler,
       RaffleBotWeb.Endpoint
     ]
 

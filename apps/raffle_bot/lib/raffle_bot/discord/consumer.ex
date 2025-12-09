@@ -4,14 +4,9 @@ defmodule RaffleBot.Discord.Consumer do
   """
   use Nostrum.Consumer
 
-  alias RaffleBot.Raffles
-  alias RaffleBot.Claims
-
-  def start_link, do: Consumer.start_link(__MODULE__)
+  def start_link, do: start_link(__MODULE__)
   require Logger
 
-  alias Nostrum.Api
-  alias Nostrum.Cache.GuildCache
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Discord.Commands.SetupRaffle
   alias RaffleBot.Discord.Commands.MarkPaid
@@ -21,6 +16,7 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Selects.MarkPaidRaffle
   alias RaffleBot.Discord.Selects.MarkPaidUser
   alias RaffleBot.Discord.Buttons.ClaimSpots
+  alias RaffleBot.Discord.Selects.ClaimSpot
 
   def handle_event({:INTERACTION_CREATE, %Interaction{type: 2, data: data} = interaction, _ws_state}) do
     task =
@@ -67,6 +63,9 @@ defmodule RaffleBot.Discord.Consumer do
         case data do
           %{"custom_id" => "claim_spots"} ->
             ClaimSpots.handle(interaction)
+
+          %{"custom_id" => "claim_spot_select_" <> _raffle_id} ->
+            ClaimSpot.handle(interaction)
 
           %{"custom_id" => "mark_paid_raffle_select"} ->
             MarkPaidRaffle.handle(interaction)

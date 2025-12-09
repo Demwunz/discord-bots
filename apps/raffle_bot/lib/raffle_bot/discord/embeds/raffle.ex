@@ -4,7 +4,6 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
   """
 
   alias Nostrum.Struct.Embed
-  alias Nostrum.Struct.Component.{ActionRow, Button}
   alias RaffleBot.Raffles.Raffle
 
   def build(%Raffle{} = raffle) do
@@ -22,12 +21,14 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
 
   def components(%Raffle{}) do
     [
-      %ActionRow{
+      %{
+        type: 1,
         components: [
-          %Button{
-            custom_id: "claim_spots",
+          %{
+            type: 2,
+            style: 1,
             label: "🎟️ Claim Spots",
-            style: :primary
+            custom_id: "claim_spots"
           }
         ]
       }

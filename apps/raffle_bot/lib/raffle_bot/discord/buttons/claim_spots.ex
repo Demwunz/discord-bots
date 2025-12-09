@@ -7,7 +7,6 @@ defmodule RaffleBot.Discord.Buttons.ClaimSpots do
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Raffles
   alias RaffleBot.Claims
-  alias Nostrum.Struct.Component.{ActionRow, SelectMenu}
 
   def handle(%Interaction{message: %{id: message_id}} = interaction) do
     # This is not ideal. We should add a `get_raffle_by_message_id/1` to the Raffles context.
@@ -32,9 +31,11 @@ defmodule RaffleBot.Discord.Buttons.ClaimSpots do
             }
           end)
 
-        %ActionRow{
+        %{
+          type: 1,
           components: [
-            %SelectMenu{
+            %{
+              type: 3,
               custom_id: "claim_spot_select_#{raffle.id}",
               placeholder: "Select your spots (#{Enum.min(chunk)}-#{Enum.max(chunk)})",
               options: options,

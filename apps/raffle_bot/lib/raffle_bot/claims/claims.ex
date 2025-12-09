@@ -8,8 +8,6 @@ defmodule RaffleBot.Claims do
 
   alias RaffleBot.Claims.Claim
 
-  defdelegate change_claim(claim, attrs), to: Claim
-
   def create_claim(attrs \\ %{}) do
     %Claim{}
     |> Claim.changeset(attrs)
@@ -20,6 +18,8 @@ defmodule RaffleBot.Claims do
     from(c in Claim, where: c.raffle_id == ^raffle_id)
     |> Repo.all()
   end
+
+  def get_claim!(id), do: Repo.get!(Claim, id)
 
   def update_claim(%Claim{} = claim, attrs) do
     claim

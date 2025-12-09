@@ -8,8 +8,6 @@ defmodule RaffleBot.Raffles do
 
   alias RaffleBot.Raffles.Raffle
 
-  defdelegate change_raffle(raffle, attrs), to: Raffle
-
   def create_raffle(attrs \\ %{}) do
     %Raffle{}
     |> Raffle.changeset(attrs)
