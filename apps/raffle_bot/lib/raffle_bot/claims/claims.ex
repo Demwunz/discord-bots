@@ -25,6 +25,10 @@ defmodule RaffleBot.Claims do
     claim
     |> Claim.changeset(attrs)
     |> Repo.update()
-  end
+     end
+     def get_claims_from_last_24_hours() do
+       from(c in Claim, where: c.inserted_at > ago(24, "hour"))
+       |> Repo.all()
+     end
 
 end

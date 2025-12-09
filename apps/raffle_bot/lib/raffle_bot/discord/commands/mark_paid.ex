@@ -8,9 +8,8 @@ defmodule RaffleBot.Discord.Commands.MarkPaid do
   alias RaffleBot.Raffles
 
   def handle(interaction) do
-    raffles = Raffles.list_raffles()
+    raffles = Raffles.list_active_raffles()
 
-    # TODO: Filter for active raffles
     options =
       Enum.map(raffles, fn raffle ->
         %{

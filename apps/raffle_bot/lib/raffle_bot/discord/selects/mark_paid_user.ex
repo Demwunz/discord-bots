@@ -7,22 +7,29 @@ defmodule RaffleBot.Discord.Selects.MarkPaidUser do
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
 
+  alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
+  alias RaffleBot.Raffles
+
   def handle(%Interaction{data: %{"values" => claim_ids}} = interaction) do
     for claim_id <- claim_ids do
-      # This is not efficient, but it's fine for now.
-      # A better approach would be to have a `get_claim!/1` and `update_claim/2`
-      # that takes attrs, so we can do this in one query.
-      {:ok, claim} = Claims.get_claim!(claim_id)
-      Claims.update_claim(claim, %{is_paid: true})
+      claim = Claims.get_claim!(claim_id)
+      {:ok, _} = Claims.update_claim(claim, %{is_paid: true})
     end
 
-    # TODO: Update the raffle embed
-    Api.create_interaction_response(interaction, %{
-      type: 4,
-      data: %{
-        content: "Users have been marked as paid.",
-        flags: 64
-      }
+    # All claims are for the same raffle, so we can just grab the first one
+    # to get the raffle id.
+    raffle_id =
+      claim_ids
+      |> List.first()
+      |> Claims.get_claim!()
+      |> Map.get(:raffle_id)
+
+    raffle = Raffles.get_raffle!(raffle_id)
+    claims = Claims.get_claims_by_raffle(raffle_id)
+
+    Api.Interaction.edit_response(interaction, %{
+      embeds: [RaffleEmbed.build(raffle, claims)],
+      components: RaffleEmbed.components(raffle, claims)
     })
   end
 end

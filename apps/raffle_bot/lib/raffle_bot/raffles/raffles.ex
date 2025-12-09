@@ -22,4 +22,19 @@ defmodule RaffleBot.Raffles do
 
   def list_raffles(), do: Repo.all(Raffle)
 
+  def list_active_raffles() do
+    from(r in Raffle, where: r.closed_at > fragment("NOW()"), or_where: is_nil(r.closed_at))
+    |> Repo.all()
+  end
+
+  def update_raffle(%Raffle{} = raffle, attrs) do
+    raffle
+    |> Raffle.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def list_closed_raffles() do
+    from(r in Raffle, where: r.closed_at < fragment("NOW()"))
+    |> Repo.all()
+  end
 end

@@ -19,17 +19,25 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
         Api.create_interaction_response(interaction, %{
           type: 4,
           data: %{
-            embeds: [RaffleEmbed.build(raffle)],
-            components: RaffleEmbed.components(raffle)
+            embeds: [RaffleEmbed.build(raffle, [])],
+            components: RaffleEmbed.components(raffle, [])
           }
         })
 
-      {:error, _changeset} ->
-        # TODO: Handle error
+      {:error, changeset} ->
+        errors =
+          Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} ->
+            msg
+          end)
+          |> Enum.map(fn {field, msg} ->
+            "`#{field}`: #{msg}"
+          end)
+          |> Enum.join("\n")
+
         Api.create_interaction_response(interaction, %{
           type: 4,
           data: %{
-            content: "Error creating raffle.",
+            content: "Error creating raffle:\n#{errors}",
             flags: 64
           }
         })

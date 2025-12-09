@@ -10,15 +10,16 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
   def handle(%Interaction{data: %{"values" => [raffle_id]}} = interaction) do
     claims = Claims.get_claims_by_raffle(raffle_id)
 
-    # TODO: Get user names from user_ids
     options =
       claims
       |> Enum.reject(& &1.is_paid)
       |> Enum.map(fn claim ->
-        %{
-          label: to_string(claim.user_id),
-          value: claim.id
-        }
+        with {:ok, user} <- Api.User.get(claim.user_id) do
+          %{
+            label: user.username,
+            value: claim.id
+          }
+        end
       end)
 
     select_menu = %{
