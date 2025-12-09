@@ -9,10 +9,7 @@ defmodule RaffleBot.Discord.Buttons.ClaimSpots do
   alias RaffleBot.Claims
 
   def handle(%Interaction{message: %{id: message_id}} = interaction) do
-    # This is not ideal. We should add a `get_raffle_by_message_id/1` to the Raffles context.
-    raffle =
-      Raffles.list_raffles()
-      |> Enum.find(&(&1.message_id == message_id))
+    raffle = Raffles.get_raffle_by_message_id(message_id)
 
     claims = Claims.get_claims_by_raffle(raffle.id)
     claimed_spots = Enum.map(claims, & &1.spot_number)

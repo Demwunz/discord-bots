@@ -16,6 +16,10 @@ defmodule RaffleBot.Raffles do
 
   def get_raffle!(id), do: Repo.get!(Raffle, id)
 
+  def get_raffle_by_message_id(message_id) do
+    Repo.get_by(Raffle, message_id: message_id)
+  end
+
   def list_raffles(), do: Repo.all(Raffle)
 
 end
