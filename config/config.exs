@@ -12,6 +12,7 @@ import Config
 # Configure Mix tasks and generators
 config :raffle_bot,
   ecto_repos: [RaffleBot.Repo],
+  adapter: Ecto.Adapters.SQLite3,
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
