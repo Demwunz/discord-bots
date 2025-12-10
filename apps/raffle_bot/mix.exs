@@ -56,7 +56,7 @@ defmodule RaffleBot.MixProject do
       {:ecto_sqlite3, "~> 0.10"},
       {:swoosh, "~> 1.11"},
       {:hackney, "~> 1.9"},
-      {:mox, "~> 1.0", only: :test},
+      {:mox, "~> 1.0"},
       {:dotenv, "~> 3.0"}
     ]
   end

@@ -17,7 +17,7 @@ defmodule RaffleBot.Application do
     if Application.get_env(:raffle_bot, :start_discord, true) do
       [
         RaffleBot.Discord.Consumer,
-        RaffleBot.AutoCloseScheduler,
+        RaffleBot.Closer
       ]
     else
       []

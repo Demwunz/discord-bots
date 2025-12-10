@@ -8,13 +8,25 @@ defmodule RaffleBot.Raffles do
 
   alias RaffleBot.Raffles.Raffle
 
+  alias RaffleBot.Closer
+
   def create_raffle(attrs \\ %{}) do
     %Raffle{}
     |> Raffle.changeset(attrs)
     |> Repo.insert()
+    |> schedule_close()
   end
 
+  defp schedule_close({:ok, raffle}) do
+    Closer.schedule_close(raffle)
+    {:ok, raffle}
+  end
+
+  defp schedule_close({:error, changeset}), do: {:error, changeset}
+
   def get_raffle!(id), do: Repo.get!(Raffle, id)
+
+  def get_raffle(id), do: Repo.get(Raffle, id)
 
   def get_raffle_by_message_id(message_id) do
     Repo.get_by(Raffle, message_id: message_id)

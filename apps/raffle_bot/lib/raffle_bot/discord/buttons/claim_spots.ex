@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Buttons.ClaimSpots do
   Handles the 'Claim Spots' button press.
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Raffles
   alias RaffleBot.Claims
@@ -43,13 +43,14 @@ defmodule RaffleBot.Discord.Buttons.ClaimSpots do
         }
       end)
 
-    Api.create_interaction_response(interaction, %{
-      type: 4,
-      data: %{
+    discord_api().create_interaction_response(
+      interaction,
+      4,
+      %{
         content: "Please select your spots.",
         components: components,
         flags: 64
       }
-    })
+    )
   end
 end

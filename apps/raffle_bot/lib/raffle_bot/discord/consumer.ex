@@ -12,11 +12,13 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Commands.MarkPaid
   alias RaffleBot.Discord.Commands.PickWinner
   alias RaffleBot.Discord.Commands.EndRaffle
+  alias RaffleBot.Discord.Commands.ExtendRaffle
   alias RaffleBot.Discord.Modals.RaffleSetup
   alias RaffleBot.Discord.Selects.MarkPaidRaffle
   alias RaffleBot.Discord.Selects.MarkPaidUser
   alias RaffleBot.Discord.Buttons.ClaimSpots
   alias RaffleBot.Discord.Selects.ClaimSpot
+  alias RaffleBot.Discord.Selects.ExtendRaffle
 
   def handle_event({:INTERACTION_CREATE, %Interaction{type: 2, data: data} = interaction, _ws_state}) do
     task =
@@ -33,6 +35,9 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"name" => "end_raffle"} ->
             EndRaffle.handle(interaction)
+
+          %{"name" => "extend_raffle"} ->
+            ExtendRaffle.handle(interaction)
 
           _ ->
             :noop
@@ -72,6 +77,9 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"custom_id" => "mark_paid_user_select"} ->
             MarkPaidUser.handle(interaction)
+
+          %{"custom_id" => "extend_raffle_select"} ->
+            ExtendRaffle.handle(interaction)
 
           _ ->
             :noop

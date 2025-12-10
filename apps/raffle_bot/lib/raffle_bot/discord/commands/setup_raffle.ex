@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Commands.SetupRaffle do
   Handles the /setup_raffle command
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
 
   def handle(interaction) do
     modal = %{
@@ -73,9 +73,6 @@ defmodule RaffleBot.Discord.Commands.SetupRaffle do
       ]
     }
 
-    Api.create_interaction_response(interaction, %{
-      type: 9,
-      data: modal
-    })
+    discord_api().create_interaction_response(interaction, 9, modal)
   end
 end

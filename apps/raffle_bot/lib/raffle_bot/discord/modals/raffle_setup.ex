@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
   Handles the raffle setup modal submission.
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Raffles
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
@@ -16,13 +16,14 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
 
     case Raffles.create_raffle(Map.put(attrs, :channel_id, channel_id)) do
       {:ok, raffle} ->
-        Api.create_interaction_response(interaction, %{
-          type: 4,
-          data: %{
+        discord_api().create_interaction_response(
+          interaction,
+          4,
+          %{
             embeds: [RaffleEmbed.build(raffle, [])],
             components: RaffleEmbed.components(raffle, [])
           }
-        })
+        )
 
       {:error, changeset} ->
         errors =
@@ -34,13 +35,14 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
           end)
           |> Enum.join("\n")
 
-        Api.create_interaction_response(interaction, %{
-          type: 4,
-          data: %{
+        discord_api().create_interaction_response(
+          interaction,
+          4,
+          %{
             content: "Error creating raffle:\n#{errors}",
             flags: 64
           }
-        })
+        )
     end
   end
 end

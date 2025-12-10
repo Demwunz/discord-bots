@@ -5,6 +5,7 @@ defmodule RaffleBot.Scheduler do
   use GenServer
   require Logger
   alias RaffleBot.Claims
+  use RaffleBot.Discord.ApiConsumer
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -20,9 +21,15 @@ defmodule RaffleBot.Scheduler do
   def handle_info(:report, state) do
     Logger.info("Fetching new claims...")
     claims = Claims.get_claims_from_last_24_hours()
-    Logger.info("Found #{length(claims)} new claims. Reporting...")
-    # TODO: Send report to Discord instead of logging
-    Logger.info(inspect(claims))
+    count = length(claims)
+    Logger.info("Found #{count} new claims. Reporting...")
+
+    if count > 0 do
+      admin_channel_id = Application.get_env(:raffle_bot, :admin_channel_id)
+      message = "Daily Report: #{count} new claims in the last 24 hours."
+      discord_api().create_message(admin_channel_id, message)
+    end
+
     schedule_work()
     {:noreply, state}
   end

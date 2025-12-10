@@ -16,7 +16,11 @@ defmodule RaffleBot.RafflesFixtures do
         total_spots: 42,
         message_id: 12345,
         channel_id: 67890,
-        description: "some description"
+        description: "some description",
+        duration_days: 7,
+        photo_url: "http://example.com/photo.png",
+        grading_link: "http://example.com/grading",
+        international_shipping: "Yes"
       })
       |> RaffleBot.Raffles.create_raffle()
 

@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Commands.PickWinner do
   Handles the /pick_winner command
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias RaffleBot.Raffles
 
   def handle(interaction) do
@@ -24,13 +24,14 @@ defmodule RaffleBot.Discord.Commands.PickWinner do
       options: options
     }
 
-    Api.create_interaction_response(interaction, %{
-      type: 4,
-      data: %{
+    discord_api().create_interaction_response(
+      interaction,
+      4,
+      %{
         content: "Please select a raffle to pick a winner from.",
         components: [%{type: 1, components: [select_menu]}],
         flags: 64
       }
-    })
+    )
   end
 end

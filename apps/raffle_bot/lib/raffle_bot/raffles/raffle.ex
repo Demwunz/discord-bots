@@ -21,7 +21,6 @@ defmodule RaffleBot.Raffles.Raffle do
     field :duration_days, :integer, default: 7
     field :international_shipping, :string, default: "Contact Admin"
     field :active, :boolean, default: true
-    field :is_complete, :boolean, default: false
     field :closed_at, :utc_datetime
     field :auto_close_at, :utc_datetime
 
@@ -45,7 +44,6 @@ defmodule RaffleBot.Raffles.Raffle do
       :duration_days,
       :international_shipping,
       :active,
-      :is_complete,
       :closed_at,
       :auto_close_at
     ])
@@ -63,15 +61,12 @@ defmodule RaffleBot.Raffles.Raffle do
   end
 
   defp set_auto_close_date(changeset) do
-    case get_change(changeset, :duration_days) do
-      nil -> changeset
-      days ->
-        auto_close_at = 
-          DateTime.utc_now()
-          |> DateTime.add(days * 24 * 60 * 60, :second)
-          |> DateTime.truncate(:second)
-        
-        put_change(changeset, :auto_close_at, auto_close_at)
-    end
+    days = get_field(changeset, :duration_days)
+    auto_close_at = 
+      DateTime.utc_now()
+      |> DateTime.add(days * 86400, :second) # 86400 seconds in a day
+      |> DateTime.truncate(:second)
+    
+    put_change(changeset, :auto_close_at, auto_close_at)
   end
 end

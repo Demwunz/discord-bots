@@ -1,6 +1,6 @@
-defmodule RaffleBot.Discord.Commands.EndRaffle do
+defmodule RaffleBot.Discord.Commands.ExtendRaffle do
   @moduledoc """
-  Handles the /end_raffle command
+  Handles the /extend_raffle command
   """
 
   use RaffleBot.Discord.ApiConsumer
@@ -19,8 +19,8 @@ defmodule RaffleBot.Discord.Commands.EndRaffle do
 
     select_menu = %{
       type: 3,
-      custom_id: "end_raffle_select",
-      placeholder: "Select a raffle",
+      custom_id: "extend_raffle_select",
+      placeholder: "Select a raffle to extend",
       options: options
     }
 
@@ -28,7 +28,7 @@ defmodule RaffleBot.Discord.Commands.EndRaffle do
       interaction,
       4,
       %{
-        content: "Please select a raffle to end.",
+        content: "Please select a raffle to extend by 7 days.",
         components: [%{type: 1, components: [select_menu]}],
         flags: 64
       }

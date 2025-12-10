@@ -31,7 +31,7 @@ defmodule RaffleBot.Discord.Commands.MySpots do
     end
   end
 
-  defp build_user_spots_embed(user_id, claims) do
+  defp build_user_spots_embed(_user_id, claims) do
     total_spots = length(claims)
     paid_spots = Enum.count(claims, & &1.is_paid)
     

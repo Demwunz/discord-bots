@@ -3,35 +3,65 @@ defmodule RaffleBot.Discord.Commands.MarkPaid do
   Handles the /mark_paid command
   """
 
-  alias Nostrum.Api
-  alias Nostrum.Api
-  alias RaffleBot.Raffles
+    use RaffleBot.Discord.ApiConsumer
 
-  def handle(interaction) do
-    raffles = Raffles.list_active_raffles()
+    alias RaffleBot.Raffles
 
-    options =
-      Enum.map(raffles, fn raffle ->
-        %{
-          label: raffle.title,
-          value: raffle.id
-        }
-      end)
+  
 
-    select_menu = %{
-      type: 3,
-      custom_id: "mark_paid_raffle_select",
-      placeholder: "Select a raffle",
-      options: options
-    }
+    def handle(interaction) do
 
-    Api.create_interaction_response(interaction, %{
-      type: 4,
-      data: %{
-        content: "Please select a raffle to mark users as paid.",
-        components: [%{type: 1, components: [select_menu]}],
-        flags: 64
+      raffles = Raffles.list_active_raffles()
+
+  
+
+      options =
+
+        Enum.map(raffles, fn raffle ->
+
+          %{
+
+            label: raffle.title,
+
+            value: raffle.id
+
+          }
+
+        end)
+
+  
+
+      select_menu = %{
+
+        type: 3,
+
+        custom_id: "mark_paid_raffle_select",
+
+        placeholder: "Select a raffle",
+
+        options: options
+
       }
-    })
-  end
+
+  
+
+      discord_api().create_interaction_response(
+
+        interaction,
+
+        4,
+
+        %{
+
+          content: "Please select a raffle to mark users as paid.",
+
+          components: [%{type: 1, components: [select_menu]}],
+
+          flags: 64
+
+        }
+
+      )
+
+    end
 end

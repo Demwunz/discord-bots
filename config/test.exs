@@ -27,6 +27,10 @@ config :nostrum,
   token: "test_token",
   num_shards: 1
 
+# Configure Mox for testing Discord API interactions
+config :raffle_bot,
+  discord_api: RaffleBot.Discord.MockApi
+
 # Disable Discord processes in test
 config :raffle_bot,
   start_discord: false

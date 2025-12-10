@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
   Handles the selection of a raffle to mark users as paid.
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
 
@@ -14,7 +14,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
       claims
       |> Enum.reject(& &1.is_paid)
       |> Enum.map(fn claim ->
-        with {:ok, user} <- Api.User.get(claim.user_id) do
+        with {:ok, user} <- discord_api().get_user(claim.user_id) do
           %{
             label: user.username,
             value: claim.id
@@ -31,13 +31,14 @@ defmodule RaffleBot.Discord.Selects.MarkPaidRaffle do
       max_values: length(options)
     }
 
-    Api.create_interaction_response(interaction, %{
-      type: 4,
-      data: %{
+    discord_api().create_interaction_response(
+      interaction,
+      4,
+      %{
         content: "Please select the users to mark as paid.",
         components: [%{type: 1, components: [select_menu]}],
         flags: 64
       }
-    })
+    )
   end
 end

@@ -34,6 +34,15 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Configure the Discord API implementation
+config :raffle_bot,
+  discord_api: RaffleBot.Discord.NostrumApi
+
+# Configure the admin channel ID.
+# This should be set in a secret file or as an environment variable.
+config :raffle_bot,
+  admin_channel_id: System.get_env("ADMIN_CHANNEL_ID")
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

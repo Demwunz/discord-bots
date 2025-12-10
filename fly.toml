@@ -1,0 +1,55 @@
+# fly.toml file generated for discord-raffle-bot on 2025-12-10
+#
+# See https://fly.io/docs/reference/configuration/ for information about this file.
+
+app = "discord-raffle-bot"
+primary_region = "scl"
+kill_signal = "SIGTERM"
+kill_timeout = "5s"
+console_command = "/app/bin/raffle_bot remote"
+
+[build]
+  builder = "hexpm/elixir:1.15.7-erlang-26.2.2-alpine-3.18.5"
+  args = "build-arg-here" # placeholder for actual build args if needed
+  release_command = "/app/bin/migrate"
+
+[env]
+  PHX_HOST = "discord-raffle-bot.fly.dev"
+  PORT = "8080"
+  DATABASE_PATH = "/data/raffle.db"
+  # DISCORD_BOT_TOKEN will be set as a secret on Fly.io
+
+[mounts]
+  source="raffle_data"
+  destination="/data"
+
+[processes]
+  app = "/app/bin/raffle_bot start"
+
+[[services]]
+  http_checks = []
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  [services.concurrency]
+    hard_limit = 1000
+    soft_limit = 1000
+    type = "connections"
+
+[[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+[[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+[[services.tcp_checks]]
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
+
+[metrics]
+  port = 9090
+  path = "/metrics"

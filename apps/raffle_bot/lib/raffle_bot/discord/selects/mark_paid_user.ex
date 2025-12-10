@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidUser do
   Handles the selection of users to mark as paid.
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
 
@@ -27,7 +27,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidUser do
     raffle = Raffles.get_raffle!(raffle_id)
     claims = Claims.get_claims_by_raffle(raffle_id)
 
-    Api.Interaction.edit_response(interaction, %{
+    discord_api().edit_interaction_response(interaction, %{
       embeds: [RaffleEmbed.build(raffle, claims)],
       components: RaffleEmbed.components(raffle, claims)
     })

@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Selects.ClaimSpot do
   Handles the selection of a spot to claim.
   """
 
-  alias Nostrum.Api
+  use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Claims
 
@@ -23,7 +23,14 @@ defmodule RaffleBot.Discord.Selects.ClaimSpot do
 
     claims = Claims.get_claims_by_raffle(raffle.id)
 
-    Api.Interaction.edit_response(interaction, %{
+    if length(claims) == raffle.total_spots do
+      admin_channel_id = Application.get_env(:raffle_bot, :admin_channel_id)
+      message = "🚨 SOLD OUT: #{raffle.title}"
+      discord_api().create_message(admin_channel_id, message)
+      Raffles.close_raffle(raffle)
+    end
+
+    discord_api().edit_interaction_response(interaction, %{
       embeds: [RaffleEmbed.build(raffle, claims)],
       components: RaffleEmbed.components(raffle, claims)
     })
