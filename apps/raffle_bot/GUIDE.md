@@ -20,12 +20,12 @@ The first step is to create a new raffle.
 *   **Action:** This opens a form (a Discord Modal) where you can enter the raffle details.
 
 #### Raffle Details:
-*   **Title:** The name of your raffle (e.g., "Keyboard Giveaway").
+*   **Title:** The name of your raffle (e.g., "Spawn #1").
 *   **Price:** The cost for a single spot.
 *   **Total Spots:** The total number of spots available.
 *   **Photo URL:** A link to an image that will be displayed in the raffle embed.
 *   **Description:** A detailed description of the item being raffled.
-*   **Grading Link:** (Optional) A link to a grading sheet or additional details.
+*   **Grading Link:** (Optional) A link to CGC/PSA etc or additional details.
 *   **Duration:** The number of days the raffle will run before automatically closing (defaults to 7).
 *   **International Shipping:** Information about international shipping (e.g., "Yes, buyer pays shipping" or "No").
 
