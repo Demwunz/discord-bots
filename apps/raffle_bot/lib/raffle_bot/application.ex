@@ -1,23 +1,26 @@
 defmodule RaffleBot.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
-
   use Application
 
   @impl true
   def start(_type, _args) do
     children = [
       RaffleBot.Repo,
-      RaffleBot.Discord.Consumer,
-      RaffleBot.Scheduler,
-      RaffleBotWeb.Endpoint
-    ]
+      {RaffleBotWeb.Endpoint, []},
+    ] ++ environment_specific_children()
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: RaffleBot.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
+  defp environment_specific_children do
+    if Application.get_env(:raffle_bot, :start_discord, true) do
+      [
+        RaffleBot.Discord.Consumer,
+        RaffleBot.AutoCloseScheduler,
+      ]
+    else
+      []
+    end
+  end
 end
