@@ -3,15 +3,15 @@
 # See https://fly.io/docs/reference/configuration/ for information about this file.
 
 app = "discord-raffle-bot"
-primary_region = "scl"
 kill_signal = "SIGTERM"
 kill_timeout = "5s"
 console_command = "/app/bin/raffle_bot remote"
 
 [build]
-  builder = "hexpm/elixir:1.15.7-erlang-26.2.2-alpine-3.18.5"
-  args = "build-arg-here" # placeholder for actual build args if needed
-  release_command = "/app/bin/migrate"
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate'"
 
 [env]
   PHX_HOST = "discord-raffle-bot.fly.dev"
