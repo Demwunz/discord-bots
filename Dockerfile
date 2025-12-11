@@ -19,9 +19,7 @@ COPY apps/raffle_bot/mix.exs ./apps/raffle_bot/
 # Set the mix environment to prod
 ENV MIX_ENV=prod
 
-RUN mix deps.get --only prod
-RUN mix deps.compile
-RUN mix deps.compile exqlite --force
+RUN mix deps.clean --all && mix deps.get --only prod && mix deps.compile
 
 # Copy the rest of the application code
 COPY . .
