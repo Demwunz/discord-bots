@@ -23,7 +23,7 @@ RUN mix deps.compile
 COPY . .
 
 # Build the release
-RUN mix release --app raffle_bot
+RUN mix release --app raffle_bot --verbose
 
 # Final image
 FROM debian:bullseye-slim AS app
