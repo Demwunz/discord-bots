@@ -1,7 +1,7 @@
 # Dockerfile for Elixir umbrella project
 
 # Builder image
-FROM hexpm/elixir:1.15.7-erlang-26.2.2-alpine-3.18.5 AS builder
+FROM hexpm/elixir:1.15.7-erlang-26.2.2-alpine AS builder
 
 # Install build tools
 RUN apk add --no-cache build-base git
