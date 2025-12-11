@@ -1,7 +1,7 @@
 # Dockerfile for Elixir umbrella project
 
 # Builder image
-FROM hexpm/elixir:1.15.7-erlang-26.2.2-debian-bookworm-slim AS builder
+FROM hexpm/elixir:1.15.7-erlang-26.2.2-debian-bullseye-20240130-slim AS builder
 
 # Install build tools
 RUN apt-get update && apt-get install -y build-essential git
@@ -20,7 +20,7 @@ COPY apps/raffle_bot/mix.exs ./apps/raffle_bot/
 ENV MIX_ENV=prod
 
 RUN mix deps.get --only prod
-RUN mix deps.compile
+RUN mix deps.compile exqlite --force
 
 # Copy the rest of the application code
 COPY . .
@@ -29,7 +29,7 @@ COPY . .
 RUN mix release
 
 # Final image
-FROM debian:bookworm-slim AS app
+FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y libstdc++6 libncurses6
