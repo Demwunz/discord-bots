@@ -156,3 +156,128 @@ The following configuration successfully deploys the Discord bot to Fly.io:
 fly secrets set SECRET_KEY_BASE=$(mix phx.gen.secret)
 fly secrets set DISCORD_BOT_TOKEN=your_discord_bot_token_here
 ```
+
+---
+
+## Database Not Ready During Initialization
+
+### Problem
+
+The application crashed on startup with:
+```
+** (Exqlite.Error) no such table: raffles
+Application raffle_bot exited: RaffleBot.Application.start(:normal, []) returned an error:
+shutdown: failed to start child: RaffleBot.Closer
+```
+
+The `RaffleBot.Closer` GenServer tried to query the database during initialization (in `init/1`), but the database tables didn't exist yet because migrations hadn't run.
+
+### Solution
+
+✅ **RESOLVED:** Added defensive error handling to `RaffleBot.Closer.init/1`:
+```elixir
+try do
+  Raffles.list_active_raffles()
+  |> Enum.each(&schedule_close/1)
+rescue
+  e in Exqlite.Error ->
+    Logger.warning("Database not ready yet (likely needs migration): #{inspect(e)}")
+  e ->
+    Logger.error("Unexpected error during Closer init: #{inspect(e)}")
+end
+```
+
+This allows the app to start successfully even if the database isn't ready, preventing crashes on first deploy before migrations run.
+
+---
+
+## Test Suite Issues
+
+### Problem
+
+Tests failed with:
+```
+** (Mix) Could not start application plug_cowboy: could not find application file: plug_cowboy.app
+```
+
+Additionally, the `RaffleBot.Discord.MockApi` module had warnings for unimplemented callback functions.
+
+### Solution
+
+✅ **RESOLVED:**
+1. Cleaned `plug_cowboy` from dependencies: `mix deps.clean plug_cowboy`
+2. Implemented all required Discord API callbacks in `MockApi`:
+   - `create_message/3`
+   - `edit_message/4`
+   - `delete_message/3`
+   - `create_interaction_response/3`
+   - `edit_interaction_response/2`
+   - `get_user/1`
+
+All 7 tests now passing with 0 failures.
+
+---
+
+## 🎉 Successful Deployment Summary
+
+**Final Status:** ✅ **App Deployed and Running**
+
+### Deployment Details
+- **URL:** https://discord-raffle-bot.fly.dev
+- **Status:** `started`
+- **Health Checks:** `1 total, 1 passing`
+- **Database:** Migrations completed successfully
+- **Phoenix Endpoint:** Running with Bandit 1.8.0 at 0.0.0.0:8080
+- **Test Suite:** 7 tests, 0 failures
+
+### Complete Fix Summary
+
+1. **Docker Image Issues** ✅
+   - Fixed deprecated Bullseye image → Updated to Bookworm
+   - Updated Elixir 1.15.7 → 1.15.8, Erlang 26.2.2 → 26.2.5.2
+   - Resolved GLIBC compatibility (Bookworm has glibc 2.36+)
+
+2. **Docker Build Configuration** ✅
+   - Added missing ARG in final stage
+   - Copied config directory for runtime.exs
+   - Added runtime dependencies (openssl, ca-certificates)
+   - Added release verification step
+
+3. **Fly.io Configuration** ✅
+   - Fixed duplicate binary paths in all commands
+   - Set `PHX_SERVER=true` environment variable
+   - Fixed IPv6 → IPv4 binding (0.0.0.0:8080)
+
+4. **Missing Dependencies** ✅
+   - Added Bandit HTTP server (`{:bandit, "~> 1.0"}`)
+   - Removed incompatible plug_cowboy
+
+5. **Database & Application** ✅
+   - Made RaffleBot.Closer defensive (handles missing tables)
+   - Ran database migrations manually via SSH
+   - Phoenix endpoint running correctly with Bandit
+
+6. **Tests** ✅
+   - Implemented all MockApi callbacks
+   - All 7 tests passing
+   - No test failures
+
+### Files Modified
+- `Dockerfile` - Updated base image and build process
+- `fly.toml` - Fixed command paths and environment variables
+- `config/runtime.exs` - Changed IPv6 to IPv4 binding
+- `apps/raffle_bot/mix.exs` - Added Bandit dependency
+- `apps/raffle_bot/lib/raffle_bot/closer.ex` - Added defensive error handling
+- `apps/raffle_bot/test/support/mock_api.ex` - Implemented all API callbacks
+- `TROUBLESHOOTING.md` - Comprehensive documentation
+
+### Post-Deployment Steps Completed
+```bash
+# Ran migrations manually
+fly ssh console --app discord-raffle-bot -C "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate()'"
+
+# Verified app health
+fly status --app discord-raffle-bot
+```
+
+The Discord Raffle Bot is now successfully deployed to Fly.io and ready for production use! 🚀
