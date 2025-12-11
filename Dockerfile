@@ -16,6 +16,9 @@ RUN mix local.hex --force && mix local.rebar --force
 COPY mix.exs mix.lock ./
 COPY apps/raffle_bot/mix.exs ./apps/raffle_bot/
 
+# Set the mix environment to prod
+ENV MIX_ENV=prod
+
 RUN mix deps.get --only prod
 RUN mix deps.compile
 
