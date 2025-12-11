@@ -13,7 +13,7 @@ console_command = '/app/bin/raffle_bot remote'
   dockerfile = 'Dockerfile'
 
 [deploy]
-  release_command = "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate'"
+  release_command = "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate()'"
 
 [env]
   DATABASE_PATH = '/data/raffle.db'
