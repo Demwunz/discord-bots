@@ -20,7 +20,9 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
 
-  def handle_event({:INTERACTION_CREATE, %Interaction{type: 2, data: data} = interaction, _ws_state}) do
+  def handle_event(
+        {:INTERACTION_CREATE, %Interaction{type: 2, data: data} = interaction, _ws_state}
+      ) do
     task =
       Task.async(fn ->
         case data do
@@ -47,7 +49,9 @@ defmodule RaffleBot.Discord.Consumer do
     Task.await(task, 15000)
   end
 
-  def handle_event({:INTERACTION_CREATE, %Interaction{type: 5, data: data} = interaction, _ws_state}) do
+  def handle_event(
+        {:INTERACTION_CREATE, %Interaction{type: 5, data: data} = interaction, _ws_state}
+      ) do
     task =
       Task.async(fn ->
         case data do
@@ -62,7 +66,9 @@ defmodule RaffleBot.Discord.Consumer do
     Task.await(task, 15000)
   end
 
-  def handle_event({:INTERACTION_CREATE, %Interaction{type: 3, data: data} = interaction, _ws_state}) do
+  def handle_event(
+        {:INTERACTION_CREATE, %Interaction{type: 3, data: data} = interaction, _ws_state}
+      ) do
     task =
       Task.async(fn ->
         case data do
@@ -90,5 +96,4 @@ defmodule RaffleBot.Discord.Consumer do
   end
 
   def handle_event(_event), do: :ok
-
 end

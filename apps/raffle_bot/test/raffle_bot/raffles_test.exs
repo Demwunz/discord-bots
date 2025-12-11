@@ -21,7 +21,14 @@ defmodule RaffleBot.RafflesTest do
     end
 
     test "create_raffle/1 with valid data creates a raffle" do
-      valid_attrs = %{title: "some title", price: "120.5", total_spots: 42, message_id: 12345, channel_id: 67890, description: "some description"}
+      valid_attrs = %{
+        title: "some title",
+        price: "120.5",
+        total_spots: 42,
+        message_id: 12345,
+        channel_id: 67890,
+        description: "some description"
+      }
 
       assert {:ok, %Raffle{} = raffle} = Raffles.create_raffle(valid_attrs)
       assert raffle.title == "some title"

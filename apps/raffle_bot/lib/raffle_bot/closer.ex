@@ -16,6 +16,7 @@ defmodule RaffleBot.Closer do
 
   def schedule_close(raffle) do
     milliseconds = DateTime.diff(raffle.auto_close_at, DateTime.utc_now(), :millisecond)
+
     if milliseconds > 0 do
       Process.send_after(self(), {:close, raffle.id}, milliseconds)
     end
@@ -25,6 +26,7 @@ defmodule RaffleBot.Closer do
   def init(_opts) do
     Raffles.list_active_raffles()
     |> Enum.each(&schedule_close/1)
+
     {:ok, %{}}
   end
 
@@ -32,7 +34,9 @@ defmodule RaffleBot.Closer do
   def handle_info({:close, raffle_id}, state) do
     case Raffles.get_raffle(raffle_id) do
       nil ->
-        :ok # Raffle was deleted
+        # Raffle was deleted
+        :ok
+
       raffle ->
         # Check if the raffle is still active and if the close time is in the past.
         # This is to prevent closing a raffle that was extended.
@@ -40,23 +44,25 @@ defmodule RaffleBot.Closer do
           close_raffle(raffle)
         end
     end
+
     {:noreply, state}
   end
 
   defp close_raffle(raffle) do
     Logger.info("Auto-closing raffle: #{raffle.title}")
     {:ok, closed_raffle} = Raffles.close_raffle(raffle)
-    
+
     claims = Claims.get_claims_by_raffle(raffle.id)
     embed = RaffleEmbed.build(closed_raffle, claims)
-    
+
     try do
       discord_api().edit_message(raffle.channel_id, raffle.message_id, %{
         embeds: [embed],
         components: []
       })
-      
+
       admin_channel_id = Application.get_env(:raffle_bot, :admin_channel_id)
+
       if admin_channel_id do
         discord_api().create_message(admin_channel_id, %{
           content: "⏰ Raffle **#{raffle.title}** auto-closed."

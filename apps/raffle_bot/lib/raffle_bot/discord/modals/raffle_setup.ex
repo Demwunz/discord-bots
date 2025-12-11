@@ -8,9 +8,12 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
   alias RaffleBot.Raffles
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
 
-  def handle(%Interaction{data: %{"components" => components}, channel_id: channel_id} = interaction) do
+  def handle(
+        %Interaction{data: %{"components" => components}, channel_id: channel_id} = interaction
+      ) do
     attrs =
-      Enum.reduce(components, %{}, fn %{"components" => [%{"custom_id" => id, "value" => value}]}, acc ->
+      Enum.reduce(components, %{}, fn %{"components" => [%{"custom_id" => id, "value" => value}]},
+                                      acc ->
         Map.put(acc, id, value)
       end)
 

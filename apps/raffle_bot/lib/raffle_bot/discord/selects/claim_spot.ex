@@ -10,7 +10,12 @@ defmodule RaffleBot.Discord.Selects.ClaimSpot do
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
   alias RaffleBot.Raffles
 
-  def handle(%Interaction{data: %{"values" => spots, "custom_id" => "claim_spot_select_" <> raffle_id}, member: %{user: %{id: user_id}}} = interaction) do
+  def handle(
+        %Interaction{
+          data: %{"values" => spots, "custom_id" => "claim_spot_select_" <> raffle_id},
+          member: %{user: %{id: user_id}}
+        } = interaction
+      ) do
     raffle = Raffles.get_raffle!(raffle_id)
 
     for spot <- spots do

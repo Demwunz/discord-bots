@@ -62,11 +62,13 @@ defmodule RaffleBot.Raffles.Raffle do
 
   defp set_auto_close_date(changeset) do
     days = get_field(changeset, :duration_days)
-    auto_close_at = 
+
+    auto_close_at =
       DateTime.utc_now()
-      |> DateTime.add(days * 86400, :second) # 86400 seconds in a day
+      # 86400 seconds in a day
+      |> DateTime.add(days * 86400, :second)
       |> DateTime.truncate(:second)
-    
+
     put_change(changeset, :auto_close_at, auto_close_at)
   end
 end

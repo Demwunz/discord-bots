@@ -36,8 +36,8 @@ defmodule RaffleBot.Raffles do
 
   def list_active_raffles() do
     now = DateTime.utc_now()
-    
-    from(r in Raffle, 
+
+    from(r in Raffle,
       where: r.closed_at > ^now or is_nil(r.closed_at),
       where: r.active == true
     )
@@ -52,8 +52,8 @@ defmodule RaffleBot.Raffles do
 
   def list_closed_raffles() do
     now = DateTime.utc_now()
-    
-    from(r in Raffle, 
+
+    from(r in Raffle,
       where: r.closed_at < ^now or r.active == false
     )
     |> Repo.all()

@@ -4,10 +4,11 @@ defmodule RaffleBot.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      RaffleBot.Repo,
-      {RaffleBotWeb.Endpoint, []},
-    ] ++ environment_specific_children()
+    children =
+      [
+        RaffleBot.Repo,
+        {RaffleBotWeb.Endpoint, []}
+      ] ++ environment_specific_children()
 
     opts = [strategy: :one_for_one, name: RaffleBot.Supervisor]
     Supervisor.start_link(children, opts)

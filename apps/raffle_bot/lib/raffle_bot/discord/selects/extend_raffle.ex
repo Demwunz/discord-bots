@@ -14,7 +14,8 @@ defmodule RaffleBot.Discord.Selects.ExtendRaffle do
 
     new_auto_close_at =
       raffle.auto_close_at
-      |> DateTime.add(7 * 86400, :second) # 86400 seconds in a day
+      # 86400 seconds in a day
+      |> DateTime.add(7 * 86400, :second)
 
     {:ok, updated_raffle} = Raffles.update_raffle(raffle, %{auto_close_at: new_auto_close_at})
 

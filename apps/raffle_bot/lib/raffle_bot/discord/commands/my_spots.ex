@@ -9,7 +9,7 @@ defmodule RaffleBot.Discord.Commands.MySpots do
 
   def handle(%Interaction{member: %{user: %{id: user_id}}} = interaction) do
     user_claims = Claims.get_claims_by_user(user_id)
-    
+
     if Enum.empty?(user_claims) do
       Api.create_interaction_response(interaction, %{
         type: 4,
@@ -20,7 +20,7 @@ defmodule RaffleBot.Discord.Commands.MySpots do
       })
     else
       embed = build_user_spots_embed(user_id, user_claims)
-      
+
       Api.create_interaction_response(interaction, %{
         type: 4,
         data: %{
@@ -34,7 +34,7 @@ defmodule RaffleBot.Discord.Commands.MySpots do
   defp build_user_spots_embed(_user_id, claims) do
     total_spots = length(claims)
     paid_spots = Enum.count(claims, & &1.is_paid)
-    
+
     %Embed{
       title: "🎟️ Your Raffle Spots",
       description: "Total: #{total_spots} spots (#{paid_spots} paid)",
@@ -51,7 +51,7 @@ defmodule RaffleBot.Discord.Commands.MySpots do
       raffle = Raffles.get_raffle!(raffle_id)
       spots = raffle_claims |> Enum.map(& &1.spot_number) |> Enum.sort() |> Enum.join(", ")
       paid = Enum.count(raffle_claims, & &1.is_paid)
-      
+
       %{
         name: raffle.title,
         value: "Spots: #{spots}\nPaid: #{paid}/#{length(raffle_claims)}",
