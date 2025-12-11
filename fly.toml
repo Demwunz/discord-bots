@@ -7,7 +7,7 @@ app = 'discord-raffle-bot'
 primary_region = 'ewr'
 kill_signal = 'SIGTERM'
 kill_timeout = '5s'
-console_command = '/app/bin/raffle_bot remote'
+console_command = 'remote'
 
 [build]
   dockerfile = 'Dockerfile'
@@ -22,7 +22,7 @@ console_command = '/app/bin/raffle_bot remote'
   PORT = '8080'
 
 [processes]
-  app = '/app/bin/raffle_bot start'
+  app = 'start'
 
 [[mounts]]
   source = 'raffle_data'
