@@ -29,7 +29,7 @@ RUN mix release --app raffle_bot
 FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y libstdc++6 ncurses-libs
+RUN apt-get update && apt-get install -y libstdc++6 libncurses6
 
 # Set the working directory
 WORKDIR /app
