@@ -1,10 +1,10 @@
 # Dockerfile for Elixir umbrella project
 
 # Builder image
-FROM hexpm/elixir:1.15.7-erlang-26.2.2-alpine AS builder
+FROM hexpm/elixir:1.15.7-erlang-26.2.2-debian-bullseye-20240130-slim AS builder
 
 # Install build tools
-RUN apk add --no-cache build-base git
+RUN apt-get update && apt-get install -y build-essential git
 
 # Set the working directory
 WORKDIR /app
@@ -26,10 +26,10 @@ COPY . .
 RUN mix release --app raffle_bot
 
 # Final image
-FROM alpine:3.18.5 AS app
+FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
-RUN apk add --no-cache libstdc++ ncurses-libs
+RUN apt-get update && apt-get install -y libstdc++6 ncurses-libs
 
 # Set the working directory
 WORKDIR /app
