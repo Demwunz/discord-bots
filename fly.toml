@@ -13,11 +13,12 @@ console_command = '/app/bin/raffle_bot remote'
   dockerfile = 'Dockerfile'
 
 [deploy]
-  release_command = "eval 'RaffleBot.Release.migrate()'"
+  release_command = "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate()'"
 
 [env]
   DATABASE_PATH = '/data/raffle.db'
   PHX_HOST = 'discord-raffle-bot.fly.dev'
+  PHX_SERVER = 'true'
   PORT = '8080'
 
 [processes]

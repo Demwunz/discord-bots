@@ -11,8 +11,7 @@ defmodule DiscordBotUmbrella.MixProject do
         raffle_bot: [
           applications: [
             raffle_bot: :permanent
-          ],
-          pre_start: "RaffleBot.Release.migrate"
+          ]
         ]
       ]
     ]

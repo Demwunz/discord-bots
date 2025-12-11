@@ -17,6 +17,7 @@ RUN mix local.hex --force && mix local.rebar --force
 
 # Copy the mix files and download dependencies
 COPY mix.exs mix.lock ./
+COPY config ./config
 COPY apps/raffle_bot/mix.exs ./apps/raffle_bot/
 
 # Set the mix environment to prod
@@ -25,16 +26,27 @@ ENV MIX_ENV=prod
 RUN mix deps.get --only prod && mix deps.compile
 
 # Copy the rest of the application code
-COPY . .
+COPY apps ./apps
 
 # Build the release
-RUN mix release
+RUN mix release raffle_bot
+
+# Verify the release was built
+RUN ls -la /app/_build/prod/rel/raffle_bot/bin/ && \
+    test -f /app/_build/prod/rel/raffle_bot/bin/raffle_bot || \
+    (echo "ERROR: Release binary not found!" && exit 1)
 
 # Final image
+ARG DEBIAN_VERSION=bookworm-20240812-slim
 FROM debian:${DEBIAN_VERSION} AS app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y libstdc++6 libncurses6
+RUN apt-get update && apt-get install -y \
+    libstdc++6 \
+    libncurses6 \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
