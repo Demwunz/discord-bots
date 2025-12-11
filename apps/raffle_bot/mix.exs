@@ -49,7 +49,7 @@ defmodule RaffleBot.MixProject do
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
-      {:plug_cowboy, "~> 2.5"},
+      {:bandit, "~> 1.0"},
       # App-specific dependencies
       {:jason, "~> 1.0"},
       {:nostrum, "~> 0.7"},
