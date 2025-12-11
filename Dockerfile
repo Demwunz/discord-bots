@@ -1,7 +1,10 @@
 # Dockerfile for Elixir umbrella project
 
 # Builder image
-FROM hexpm/elixir:1.15.7-erlang-26.2.2-debian-bullseye-20240130-slim AS builder
+ARG ELIXIR_VERSION=1.15.7
+ARG OTP_VERSION=26.2.2
+ARG DEBIAN_VERSION=bullseye-20230904-slim
+FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION} AS builder
 
 # Install build tools
 RUN apt-get update && apt-get install -y build-essential git
@@ -19,12 +22,6 @@ COPY apps/raffle_bot/mix.exs ./apps/raffle_bot/
 # Set the mix environment to prod
 ENV MIX_ENV=prod
 
-# Force exqlite to be recompiled from source
-ENV EXQLITE_FORCE_BUILD=true
-
-# Set the Elixir Erlang options
-ENV ELIXIR_ERL_OPTIONS="+fnu"
-
 RUN mix deps.get --only prod && mix deps.compile
 
 # Copy the rest of the application code
@@ -34,13 +31,10 @@ COPY . .
 RUN mix release
 
 # Final image
-FROM debian:bullseye-slim AS app
+FROM debian:${DEBIAN_VERSION} AS app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y libstdc++6 libncurses6
-
-# Set the Elixir Erlang options
-ENV ELIXIR_ERL_OPTIONS="+fnu"
 
 # Set the working directory
 WORKDIR /app
