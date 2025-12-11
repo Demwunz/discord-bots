@@ -13,7 +13,7 @@ console_command = '/app/bin/raffle_bot remote'
   dockerfile = 'Dockerfile'
 
 [deploy]
-  release_command = "eval 'import Exqlite.Retry, retry: [Exqlite.Retry.wrap(&RaffleBot.Release.migrate/0)]'"
+  release_command = "eval 'RaffleBot.Release.migrate()'"
 
 [env]
   DATABASE_PATH = '/data/raffle.db'
