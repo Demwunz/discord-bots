@@ -57,7 +57,8 @@ defmodule RaffleBot.MixProject do
       {:swoosh, "~> 1.11"},
       {:hackney, "~> 1.9"},
       {:mox, "~> 1.0"},
-      {:dotenv, "~> 3.0"}
+      {:dotenv, "~> 3.0"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
