@@ -22,6 +22,9 @@ ENV MIX_ENV=prod
 # Force exqlite to be recompiled from source
 ENV EXQLITE_FORCE_BUILD=true
 
+# Set the Elixir Erlang options
+ENV ELIXIR_ERL_OPTIONS="+fnu"
+
 RUN mix deps.get --only prod && mix deps.compile
 
 # Copy the rest of the application code
@@ -35,6 +38,9 @@ FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y libstdc++6 libncurses6
+
+# Set the Elixir Erlang options
+ENV ELIXIR_ERL_OPTIONS="+fnu"
 
 # Set the working directory
 WORKDIR /app
