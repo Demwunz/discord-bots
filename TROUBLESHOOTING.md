@@ -28,6 +28,8 @@ Failed to load NIF library: '/lib/x86_64-linux-gnu/libc.so.6: version GLIBC_2.33
 
 7.  **Use a specific Debian-based image:** I am now trying to use a specific Debian-based image with the `DEBIAN_VERSION` explicitly set. This should ensure that the `glibc` version is compatible with the pre-compiled `exqlite` NIF.
 
-### Next Steps
+8.  **Switch to Debian Bookworm with valid Docker image:** The original Bullseye image tag (`bullseye-20230904-slim`) was deprecated and removed from Docker Hub. Switching to a Debian Bookworm-based image (`bookworm-20240812-slim`) with Elixir 1.15.8 and Erlang 26.2.5.2 solves both the Docker image availability issue and the GLIBC compatibility issue, as Bookworm includes glibc 2.36+.
 
-If this approach does not work, I will need to ask for help from a human expert.
+### Solution
+
+✅ **RESOLVED:** Using `hexpm/elixir:1.15.8-erlang-26.2.5.2-debian-bookworm-20240812-slim` as the base image. Debian Bookworm provides glibc 2.36, which is compatible with the pre-compiled `exqlite` NIF.

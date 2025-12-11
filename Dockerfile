@@ -1,9 +1,9 @@
 # Dockerfile for Elixir umbrella project
 
 # Builder image
-ARG ELIXIR_VERSION=1.15.7
-ARG OTP_VERSION=26.2.2
-ARG DEBIAN_VERSION=bullseye-20230904-slim
+ARG ELIXIR_VERSION=1.15.8
+ARG OTP_VERSION=26.2.5.2
+ARG DEBIAN_VERSION=bookworm-20240812-slim
 FROM hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION} AS builder
 
 # Install build tools
