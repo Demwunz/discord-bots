@@ -24,8 +24,16 @@ defmodule RaffleBot.Closer do
 
   @impl true
   def init(_opts) do
-    Raffles.list_active_raffles()
-    |> Enum.each(&schedule_close/1)
+    # Handle case where database might not be migrated yet (e.g., first deploy)
+    try do
+      Raffles.list_active_raffles()
+      |> Enum.each(&schedule_close/1)
+    rescue
+      e in Exqlite.Error ->
+        Logger.warning("Database not ready yet (likely needs migration): #{inspect(e)}")
+      e ->
+        Logger.error("Unexpected error during Closer init: #{inspect(e)}")
+    end
 
     {:ok, %{}}
   end
