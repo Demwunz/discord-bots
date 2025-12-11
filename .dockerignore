@@ -1,0 +1,17 @@
+# Ignore .git directory
+.git
+
+# Ignore .env files
+.env
+
+# Ignore build artifacts
+_build
+
+# Ignore dependencies
+deps
+
+# Ignore logs
+*.log
+
+# Ignore docker-compose.yml
+docker-compose.yml

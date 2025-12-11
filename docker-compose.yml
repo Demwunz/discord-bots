@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PHX_HOST=localhost
+      - DATABASE_PATH=/app/data/raffle.db
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - ADMIN_CHANNEL_ID=${ADMIN_CHANNEL_ID}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+    ports:
+      - "4000:8080"
+    volumes:
+      - .:/app
+      - raffle_data:/app/data
+    command: >
+      sh -c "mix deps.get &&
+             mix ecto.create &&
+             mix ecto.migrate &&
+             mix phx.server"
+
+volumes:
+  raffle_data:

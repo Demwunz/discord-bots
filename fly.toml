@@ -1,55 +1,60 @@
-# fly.toml file generated for discord-raffle-bot on 2025-12-10
+# fly.toml app configuration file generated for discord-raffle-bot on 2025-12-12T00:25:19+05:00
 #
-# See https://fly.io/docs/reference/configuration/ for information about this file.
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "discord-raffle-bot"
-kill_signal = "SIGTERM"
-kill_timeout = "5s"
-console_command = "/app/bin/raffle_bot remote"
+app = 'discord-raffle-bot'
+primary_region = 'ewr'
+kill_signal = 'SIGTERM'
+kill_timeout = '5s'
+console_command = '/app/bin/raffle_bot remote'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [deploy]
   release_command = "/app/bin/raffle_bot eval 'RaffleBot.Release.migrate'"
 
 [env]
-  PHX_HOST = "discord-raffle-bot.fly.dev"
-  PORT = "8080"
-  DATABASE_PATH = "/data/raffle.db"
-  # DISCORD_BOT_TOKEN will be set as a secret on Fly.io
-
-[mounts]
-  source="raffle_data"
-  destination="/data"
+  DATABASE_PATH = '/data/raffle.db'
+  PHX_HOST = 'discord-raffle-bot.fly.dev'
+  PORT = '8080'
 
 [processes]
-  app = "/app/bin/raffle_bot start"
+  app = '/app/bin/raffle_bot start'
+
+[[mounts]]
+  source = 'raffle_data'
+  destination = '/data'
 
 [[services]]
-  http_checks = []
+  protocol = 'tcp'
   internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
+  processes = ['app']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
   [services.concurrency]
+    type = 'connections'
     hard_limit = 1000
     soft_limit = 1000
-    type = "connections"
 
-[[services.ports]]
-    force_https = true
-    handlers = ["http"]
-    port = 80
+  [[services.tcp_checks]]
+    interval = '15s'
+    timeout = '2s'
 
-[[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
+[[vm]]
+  memory = '1gb'
+  cpus = 1
+  memory_mb = 1024
 
-[[services.tcp_checks]]
-    interval = "15s"
-    restart_limit = 0
-    timeout = "2s"
-
-[metrics]
+[[metrics]]
   port = 9090
-  path = "/metrics"
+  path = '/metrics'
