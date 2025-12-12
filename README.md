@@ -29,7 +29,7 @@ For detailed information and guides, please refer to the [Documentation Index](.
 ### Quick Links:
 - [Setup Guide](./docs/development/SETUP.md) - Initial setup for Discord bot and Fly.io
 - [Development Workflow](./docs/development/WORKFLOW.md) - Git workflow, commits, and development practices
-- [Deployment Guide](./docs/operations/DEPLOYMENT.md) - Deploying to Fly.io (single or multiple apps)
+- [Deployment Guide](./docs/operations/TROUBLESHOOTING.md) - Deploying to Fly.io (single or multiple apps)
 - [Raffle Bot Overview](./apps/raffle_bot/README.md) - Specific documentation for the Raffle Bot.
 
 ## Bots
