@@ -98,44 +98,6 @@ You can view all the spots you've claimed across all raffles.
 *   **Command:** `/my_spots`
 *   **Result:** The bot will send you a private message listing all your claimed spots and their payment status.
 
-## Local Development with Docker
-
-If you prefer to use Docker for local development, you can use the provided `docker-compose.yml` file to build and run the application.
-
-### Prerequisites
-
-*   [Docker](https://docs.docker.com/get-docker/)
-*   [Docker Compose](https://docs.docker.com/compose/install/)
-
-### Setup
-
-1.  **Create a `.env` file:**
-
-    Create a copy of the `.env.example` file and name it `.env`.
-
-    ```bash
-    cp .env.example .env
-    ```
-
-2.  **Fill in the environment variables:**
-
-    Open the `.env` file and fill in the required environment variables:
-
-    *   `SECRET_KEY_BASE`: You can generate a new secret by running `mix phx.gen.secret`.
-    *   `DISCORD_TOKEN`: Your Discord bot token.
-    *   `ADMIN_CHANNEL_ID`: The ID of the channel where you want to receive admin reports.
-
-### Running the Application
-
-Once you have configured your `.env` file, you can start the application using Docker Compose:
-
-```bash
-docker-compose up --build
-```
-
-This will build the Docker image and start the application. The bot will be running and connected to Discord.
-
-Any changes you make to the local application code will be automatically reflected in the running container.
 ---
 
 ## 🎨 Visual Guide
