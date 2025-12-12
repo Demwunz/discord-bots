@@ -18,8 +18,8 @@ For a detailed guide on how to set up, configure, and use the Raffle Bot, please
 ## 📚 Documentation
 
 *   **Raffle Bot Guide**: [Detailed usage guide for the Raffle Bot](./docs/GUIDE.md)
-*   **Product Requirements**: [Overview of the bot's functional requirements](../specs/raffle_bot/product_requirements.md)
-*   **Technical Requirements**: [Details on the bot's architecture and technical implementation](../specs/raffle_bot/technical_requirements.md)
+*   **Product Requirements**: [Overview of the bot's functional requirements](../../specs/raffle_bot/product_requirements.md)
+*   **Technical Requirements**: [Details on the bot's architecture and technical implementation](../../specs/raffle_bot/technical_requirements.md)
 *   **Overall Project Documentation**: For information about the entire umbrella project, deployment, and development practices, see the main [Documentation Index](../../docs/INDEX.md).
 
 ## 🛠️ Development
