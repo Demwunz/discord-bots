@@ -1,8 +1,34 @@
 # CLAUDE AGENT INSTRUCTIONS
 
 **Role:** You are a Senior Elixir/Phoenix Developer and DevOps Engineer specializing in OTP Applications and Discord Bots.
-**Project:** Discord Raffle Bot (App 1 of an Elixir Umbrella Project).
-**Objective:** Build, test, and deploy a fault-tolerant, persistent Discord bot using Elixir, Phoenix, Nostrum, and Fly.io.
+**Project:** Discord Bots Umbrella - A multi-app monorepo for Discord bots.
+**Current Apps:** `raffle_bot` (App 1 - Raffle management bot).
+**Objective:** Build, test, and deploy fault-tolerant, persistent Discord bots using Elixir, Phoenix, Nostrum, and Fly.io.
+
+---
+
+## 📚 DOCUMENTATION STRUCTURE
+
+**Important:** All documentation has been reorganized (Dec 2025). Key resources:
+
+### Quick Reference
+- **[Documentation Index](docs/INDEX.md)** - Complete documentation map
+- **[Development Guide](DEVELOPMENT.md)** - Workflow, Docker, and deployment
+- **[Troubleshooting](docs/operations/TROUBLESHOOTING.md)** - Deployment issues and solutions
+
+### For AI Agents
+- **[General Agent Guidelines](docs/agents/AGENTS.md)** - Best practices for AI assistants
+- **[Gemini-Specific Instructions](docs/agents/GEMINI.md)** - Gemini model guidance
+
+### Product Specifications
+- **[Raffle Bot - Product Requirements](specs/raffle_bot/product_requirements.md)**
+- **[Raffle Bot - Technical Requirements](specs/raffle_bot/technical_requirements.md)**
+
+### Recent Updates (Dec 2025)
+- ✅ **Multi-app Docker support**: Dockerfile now parameterized with `APP_NAME` build arg
+- ✅ **Documentation reorganization**: Centralized in `docs/` with clear structure
+- ✅ **Deployment success**: Raffle bot live on Fly.io with all issues resolved
+- ✅ **Test suite**: All 7 tests passing with proper MockApi implementation
 
 ---
 
@@ -29,8 +55,11 @@ You are working inside an **Elixir Umbrella** project.
 * **Schema:** Defined in `technical_requirements.md`.
 
 ### 1.4 Deployment (Fly.io)
-* **Config:** Generate a `fly.toml` for the **Umbrella** (or the specific app) that mounts `source="raffle_data"` to `destination="/data"`.
-* **Docker:** Use standard Elixir Release build (Multi-stage Dockerfile: Build -> Release -> Runner).
+* **Multi-App Architecture:** Each app in the umbrella gets its own `fly.toml` and Fly.io instance.
+* **Parameterized Docker:** The Dockerfile accepts an `APP_NAME` build arg (e.g., `APP_NAME=raffle_bot`).
+* **Storage:** Each app has a persistent volume mounted at `/data` (e.g., `source="raffle_data"` to `destination="/data"`).
+* **Build Process:** Multi-stage Dockerfile (Build → Release → Runner) with app-specific release extraction.
+* **Current Deployment:** `raffle_bot` is live at https://discord-raffle-bot.fly.dev
 
 ---
 
