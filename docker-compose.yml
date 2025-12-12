@@ -1,26 +1,78 @@
+# Docker Compose for Discord Bots Umbrella Project
+# Supports multiple apps - each bot can be run independently or together
+
 version: '3.8'
 
 services:
-  app:
+  # Raffle Bot
+  raffle_bot:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        APP_NAME: raffle_bot
+    image: discord-bots/raffle_bot:latest
+    container_name: raffle_bot_dev
     environment:
-      - PHX_HOST=localhost
-      - DATABASE_PATH=/app/data/raffle.db
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - ADMIN_CHANNEL_ID=${ADMIN_CHANNEL_ID}
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      # Phoenix configuration
+      PHX_SERVER: "true"
+      PHX_HOST: "localhost"
+      PORT: "4000"
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE:-changeme_generate_with_mix_phx_gen_secret}"
+
+      # Database configuration
+      DATABASE_PATH: "/data/raffle.db"
+      POOL_SIZE: "10"
+
+      # Discord configuration
+      DISCORD_BOT_TOKEN: "${RAFFLE_BOT_TOKEN:?Please set RAFFLE_BOT_TOKEN in .env}"
+
+      # Optional: Admin channel for notifications
+      # ADMIN_CHANNEL_ID: "${ADMIN_CHANNEL_ID}"
     ports:
-      - "4000:8080"
+      - "4000:4000"
     volumes:
-      - .:/app
-      - raffle_data:/app/data
-    command: >
-      sh -c "mix deps.get &&
-             mix ecto.create &&
-             mix ecto.migrate &&
-             mix phx.server"
+      # Persist database between restarts
+      - raffle_bot_data:/data
+
+      # Uncomment for development with hot reloading
+      # WARNING: This mounts your source code and won't use the release build
+      # - ./apps/raffle_bot:/app/apps/raffle_bot
+      # - ./config:/app/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Example: Template for future bots
+  # Uncomment and modify when adding a new bot to the umbrella
+  #
+  # another_bot:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     args:
+  #       APP_NAME: another_bot
+  #   image: discord-bots/another_bot:latest
+  #   container_name: another_bot_dev
+  #   environment:
+  #     PHX_SERVER: "true"
+  #     PHX_HOST: "localhost"
+  #     PORT: "4001"
+  #     SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
+  #     DATABASE_PATH: "/data/another_bot.db"
+  #     DISCORD_BOT_TOKEN: "${ANOTHER_BOT_TOKEN:?Please set ANOTHER_BOT_TOKEN in .env}"
+  #   ports:
+  #     - "4001:4001"
+  #   volumes:
+  #     - another_bot_data:/data
+  #   restart: unless-stopped
 
 volumes:
-  raffle_data:
+  raffle_bot_data:
+    driver: local
+  # another_bot_data:
+  #   driver: local

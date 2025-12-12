@@ -11,6 +11,8 @@ console_command = 'remote'
 
 [build]
   dockerfile = 'Dockerfile'
+  [build.args]
+    APP_NAME = "raffle_bot"
 
 [deploy]
   release_command = "eval 'RaffleBot.Release.migrate()'"
