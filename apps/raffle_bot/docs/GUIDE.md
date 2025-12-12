@@ -1,3 +1,4 @@
+
 # Discord Raffle Bot Guide
 
 Welcome to the Raffle Bot! This guide explains everything you need to know to manage paid community raffles directly within your Discord server.
