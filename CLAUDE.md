@@ -147,7 +147,7 @@ docs(specs): [#1] update technical requirements
 
 **Git Worktrees:**
 * Use worktrees for feature branch isolation
-* See [Development Workflow](docs/development/WORKFLOW.md) for details
+* See [DEVELOPMENT.md Section 2](DEVELOPMENT.md#2-git-workflow-strict) for details
 
 ### 2.3 Testing Standards
 **Test Structure:**

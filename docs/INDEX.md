@@ -6,12 +6,13 @@ Welcome to the Discord Bots Umbrella documentation!
 
 ### Getting Started
 - [Setup Guide](development/SETUP.md) - Initial setup for Discord bot and Fly.io
-- [Development Workflow](development/WORKFLOW.md) - Git workflow, commits, and development practices
-- [Docker Setup](development/DOCKER.md) - Local development with Docker and Docker Compose
+- [Development Guide](../DEVELOPMENT.md) - Complete guide covering workflow, Docker, and deployment
 - [Cheatsheet](development/CHEATSHEET.md) - Quick reference for common commands
 
 ### Deployment & Operations
-- [Deployment Guide](operations/DEPLOYMENT.md) - Deploying to Fly.io (single or multiple apps)
+- [Deployment Guide](../DEVELOPMENT.md#5-deployment-flyio) - Deploying to Fly.io (in DEVELOPMENT.md Section 5)
+- [Docker Setup](../DEVELOPMENT.md#4-local-development-with-docker) - Local development with Docker (in DEVELOPMENT.md Section 4)
+- [Git Workflow](../DEVELOPMENT.md#2-git-workflow-strict) - Git worktrees and commit standards (in DEVELOPMENT.md Section 2)
 - [Troubleshooting](operations/TROUBLESHOOTING.md) - Common deployment issues and solutions
 
 ### AI Agent Guides
@@ -56,9 +57,9 @@ discord-bots/
 If you're an AI agent working on this project:
 
 1. **Start here**: Read [CLAUDE.md](../CLAUDE.md) in the root directory
-2. **Agent guidelines**: See [docs/agents/AGENTS.md](agents/AGENTS.md)
+2. **Agent guidelines**: See [agents/AGENTS.md](agents/AGENTS.md)
 3. **Current context**: All documentation has been recently updated (Dec 2025)
-4. **Architecture notes**: Review the [Deployment Guide](operations/DEPLOYMENT.md) Section 5.2
+4. **Architecture notes**: Review [DEVELOPMENT.md Section 5](../DEVELOPMENT.md#5-deployment-flyio) for deployment patterns
 
 ---
 

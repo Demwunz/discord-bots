@@ -11,9 +11,10 @@
 ## 0. Documentation References
 
 For comprehensive guides, see the [Documentation Index](../../docs/INDEX.md):
-* **[Development Workflow](../../docs/development/WORKFLOW.md)** - Git workflow, commits, and development practices
-* **[Docker Setup](../../docs/development/DOCKER.md)** - Local development with Docker Compose
-* **[Deployment Guide](../../docs/operations/DEPLOYMENT.md)** - Deploying to Fly.io
+* **[Development Guide](../../DEVELOPMENT.md)** - Complete guide covering workflow, Docker, and deployment
+* **[Git Workflow](../../DEVELOPMENT.md#2-git-workflow-strict)** - Git worktrees and commit standards (Section 2)
+* **[Docker Setup](../../DEVELOPMENT.md#4-local-development-with-docker)** - Local development with Docker Compose (Section 4)
+* **[Deployment Guide](../../DEVELOPMENT.md#5-deployment-flyio)** - Deploying to Fly.io (Section 5)
 * **[Troubleshooting](../../docs/operations/TROUBLESHOOTING.md)** - Common issues and solutions
 * **[Product Requirements](product_requirements.md)** - Feature specifications
 
@@ -304,7 +305,7 @@ Tests use `Ecto.Adapters.SQL.Sandbox` for isolation. Each test runs in a transac
 
 ## 5. Git Workflow
 
-The project uses **Git Worktrees** for feature branch isolation. See [Development Workflow](../../docs/development/WORKFLOW.md) for complete details.
+The project uses **Git Worktrees** for feature branch isolation. See [DEVELOPMENT.md Section 2](../../DEVELOPMENT.md#2-git-workflow-strict) for complete details.
 
 **Commit Message Format:**
 ```
