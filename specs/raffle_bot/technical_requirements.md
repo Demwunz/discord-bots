@@ -33,8 +33,9 @@ The project uses an Elixir Umbrella to manage multiple applications within a sin
 ## 2. Database Schema (Ecto + SQLite)
 **Library:** `Ecto` with `ecto_sqlite3` adapter.
 **Configuration:**
-* **Dev:** `database: "raffle.db"` (Local project root)
-* **Prod:** `database: "/data/raffle.db"` (Persistent Volume)
+*   **Dev:** `database: "raffle.db"` (Local project root)
+*   **Prod:** `database: "/data/raffle.db"` (Persistent Volume)
+*   **Prod Env Var:** `DATABASE_PATH` pointing to `/data/raffle.db`
 
 ### 2.1 Table: `raffles`
 | Column | Type | Description |
