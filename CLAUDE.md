@@ -14,7 +14,7 @@
 
 ### Quick Reference
 - **[Documentation Index](docs/INDEX.md)** - Complete documentation map
-- **[Development Guide](DEVELOPMENT.md)** - Workflow, Docker, and deployment
+- **[Development Guide](docs/development/DEVELOPMENT.md)** - Workflow, Docker, and deployment
 - **[Troubleshooting](docs/operations/TROUBLESHOOTING.md)** - Deployment issues and solutions
 
 ### For AI Agents
@@ -147,7 +147,7 @@ docs(specs): [#1] update technical requirements
 
 **Git Worktrees:**
 * Use worktrees for feature branch isolation
-* See [DEVELOPMENT.md Section 2](DEVELOPMENT.md#2-git-workflow-strict) for details
+* See [DEVELOPMENT.md Section 2](docs/development/DEVELOPMENT.md#2-git-workflow-strict) for details
 
 ### 2.3 Testing Standards
 **Test Structure:**
