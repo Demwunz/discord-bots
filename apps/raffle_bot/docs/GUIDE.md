@@ -9,6 +9,57 @@ The Raffle Bot automates the entire raffle process, from creation to winner sele
 
 ---
 
+## ⚙️ Initial Setup (First Time Only)
+
+Before using the raffle bot, a server administrator must configure it. This only needs to be done once when the bot is first added to your Discord server.
+
+### Prerequisites
+
+1. **Create Required Channels:**
+   - `#raffle-admin` - Private channel for admin commands and notifications
+   - `#raffles-v2` - Public channel where raffle posts will appear
+
+2. **Create Required Role:**
+   - `Bot Boss` - Role that grants admin access to raffle commands
+
+3. **Invite the Bot:**
+   - Add the bot to your Discord server with appropriate permissions
+
+### Running Initial Configuration
+
+**In the `#raffle-admin` channel**, a user with "Manage Server" permissions should run:
+
+```
+/setup_raffle_admin bot_boss_role:@BotBoss user_channel:#raffles-v2
+```
+
+**Parameters:**
+- `bot_boss_role` - The Discord role that should have admin access (e.g., @BotBoss)
+- `user_channel` - The public channel where raffle posts will appear (e.g., #raffles-v2)
+
+**What This Does:**
+- Automatically detects the admin channel (the channel where you run the command)
+- Stores the user channel for raffle posts
+- Configures which role has admin permissions
+- Enables authorization and channel validation
+
+**Important Notes:**
+- Only users with the Bot Boss role can use admin commands after configuration
+- Admin commands will work best when used in the admin channel (soft warning if used elsewhere)
+- You can update the configuration anytime with `/configure_raffle_admin`
+
+### Updating Configuration Later
+
+If you need to change channels or roles:
+
+```
+/configure_raffle_admin bot_boss_role:@NewRole user_channel:#new-channel
+```
+
+This command requires the Bot Boss role and will update all settings.
+
+---
+
 ## 🚀 For Administrators: Managing Raffles
 
 As an admin, you have access to a suite of slash commands to create and manage raffles.

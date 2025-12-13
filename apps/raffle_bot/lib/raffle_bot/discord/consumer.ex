@@ -9,6 +9,8 @@ defmodule RaffleBot.Discord.Consumer do
 
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Discord.Commands.SetupRaffle
+  alias RaffleBot.Discord.Commands.SetupRaffleAdmin
+  alias RaffleBot.Discord.Commands.ConfigureRaffleAdmin
   alias RaffleBot.Discord.Commands.MarkPaid
   alias RaffleBot.Discord.Commands.PickWinner
   alias RaffleBot.Discord.Commands.EndRaffle
@@ -19,6 +21,8 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Buttons.ClaimSpots
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
+  alias RaffleBot.Discord.Authorization
+  alias RaffleBot.Discord.ChannelValidator
 
   def handle_event(
         {:INTERACTION_CREATE, %Interaction{type: 2, data: data} = interaction, _ws_state}
@@ -26,20 +30,26 @@ defmodule RaffleBot.Discord.Consumer do
     task =
       Task.async(fn ->
         case data do
+          %{"name" => "setup_raffle_admin"} ->
+            SetupRaffleAdmin.handle(interaction)
+
+          %{"name" => "configure_raffle_admin"} ->
+            ConfigureRaffleAdmin.handle(interaction)
+
           %{"name" => "setup_raffle"} ->
-            SetupRaffle.handle(interaction)
+            handle_admin_command(interaction, &SetupRaffle.handle/1)
 
           %{"name" => "mark_paid"} ->
-            MarkPaid.handle(interaction)
+            handle_admin_command(interaction, &MarkPaid.handle/1)
 
           %{"name" => "pick_winner"} ->
-            PickWinner.handle(interaction)
+            handle_admin_command(interaction, &PickWinner.handle/1)
 
           %{"name" => "end_raffle"} ->
-            EndRaffle.handle(interaction)
+            handle_admin_command(interaction, &EndRaffle.handle/1)
 
           %{"name" => "extend_raffle"} ->
-            ExtendRaffle.handle(interaction)
+            handle_admin_command(interaction, &ExtendRaffle.handle/1)
 
           _ ->
             :noop
@@ -96,4 +106,39 @@ defmodule RaffleBot.Discord.Consumer do
   end
 
   def handle_event(_event), do: :ok
+
+  # Private helper for handling admin commands with authorization and channel validation
+  defp handle_admin_command(interaction, command_handler) do
+    case Authorization.authorize_admin(interaction) do
+      {:ok, _config} ->
+        # User is authorized, check channel and execute command
+        case ChannelValidator.validate_channel(interaction, :admin) do
+          {:ok, nil} ->
+            # Correct channel, execute command
+            command_handler.(interaction)
+
+          {:ok, warning} ->
+            # Wrong channel, execute command but prepend warning
+            # Note: This requires command handlers to support warning injection
+            # For now, just execute the command normally
+            Logger.warning("Admin command used in non-admin channel: #{warning}")
+            command_handler.(interaction)
+        end
+
+      {:error, reason} ->
+        # User is not authorized, send unauthorized response
+        Authorization.unauthorized_response(reason)
+        |> send_unauthorized_response(interaction)
+    end
+  end
+
+  defp send_unauthorized_response(response, interaction) do
+    case Application.get_env(:raffle_bot, :discord_api) do
+      nil ->
+        Nostrum.Api.create_interaction_response(interaction, response.type, response.data)
+
+      api_module ->
+        api_module.create_interaction_response(interaction, response.type, response.data)
+    end
+  end
 end

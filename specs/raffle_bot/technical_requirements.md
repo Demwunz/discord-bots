@@ -150,6 +150,24 @@ config :raffle_bot, RaffleBot.Repo,
 **Constraints:**
 * Unique Index on `[raffle_id, spot_number]` (Prevents double booking).
 
+### 2.3 Table: `guild_configurations`
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | BINARY_ID (PK) | Internal DB ID |
+| `guild_id` | TEXT | Discord Server/Guild ID (Unique) |
+| `admin_channel_id` | TEXT | Channel for admin commands |
+| `user_channel_id` | TEXT | Channel for raffle posts |
+| `bot_boss_role_id` | TEXT | Role required for admin commands |
+| `timestamps` | UTC Datetime | `inserted_at`, `updated_at` |
+
+**Constraints:**
+* Unique Index on `guild_id` (One configuration per guild).
+
+**Purpose:**
+* Stores per-guild configuration for authorization and channel validation
+* Created via `/setup_raffle_admin` command
+* Updated via `/configure_raffle_admin` command
+
 ---
 
 ## 3. Development Standards
@@ -168,15 +186,64 @@ Business logic must be separated from Discord implementation details following P
   * Marking spots as paid/unpaid
   * Checking spot availability
   * Listing user claims
+* **`RaffleBot.GuildConfig`:** Manages guild (server) configuration
+  * Creating/updating guild configurations
+  * Retrieving configuration by guild ID
+  * Checking if guild has configuration
+  * Upsert operations for setup/reconfigure commands
 
 **Discord Integration:**
 * **`RaffleBot.Discord.Consumer`:** Event handler (implements Nostrum.Consumer)
   * Handles Discord gateway events (InteractionCreate, etc.)
-  * Calls context functions for business logic
+  * Routes commands to appropriate handlers
+  * Wraps admin commands with authorization checks
   * Formats responses for Discord API
   * Should NOT contain business logic
+* **`RaffleBot.Discord.Authorization`:** Role-based authorization
+  * Validates Bot Boss role from guild configuration
+  * Checks user membership and roles
+  * Returns formatted error responses
+  * Used by Consumer before executing admin commands
+* **`RaffleBot.Discord.ChannelValidator`:** Channel validation (soft enforcement)
+  * Compares command channel with configured channels
+  * Returns warning messages for wrong channel usage
+  * Allows commands to execute with warnings (not strict blocking)
+  * Normalizes channel IDs (string/integer compatibility)
 
-### 3.2 Pagination Logic
+### 3.2 Authorization & Command Flow
+
+**New Slash Commands:**
+* **`/setup_raffle_admin`** - Initial guild configuration (requires "Manage Server" Discord permission)
+  * Command handler: `RaffleBot.Discord.Commands.SetupRaffleAdmin`
+  * Infers admin channel from command invocation location
+  * Creates guild configuration in database
+  * No authorization required (Discord native "Manage Server" permission)
+* **`/configure_raffle_admin`** - Update guild configuration (requires Bot Boss role)
+  * Command handler: `RaffleBot.Discord.Commands.ConfigureRaffleAdmin`
+  * Uses Authorization module to check Bot Boss role
+  * Updates existing guild configuration
+
+**Admin Command Authorization Flow:**
+1. User invokes admin command (setup_raffle, mark_paid, etc.)
+2. Consumer routes to `handle_admin_command/2` helper
+3. `Authorization.authorize_admin/1` checks:
+   - Guild has configuration in database
+   - User has member data in interaction
+   - User has Bot Boss role from guild configuration
+4. If authorized:
+   - `ChannelValidator.validate_channel/2` checks if correct channel
+   - Warning logged if wrong channel (soft enforcement)
+   - Command handler executed
+5. If unauthorized:
+   - Ephemeral error response sent to user
+   - Command handler NOT executed
+
+**Role & Channel ID Normalization:**
+* Discord API can send IDs as integers or strings
+* Authorization and ChannelValidator normalize IDs to strings for comparison
+* Handles mixed types gracefully (e.g., config stores "123", Discord sends 123)
+
+### 3.3 Pagination Logic
 Discord Select Menus have a hard limit of **25 options**.
 
 **Implementation Requirements:**
@@ -186,7 +253,7 @@ Discord Select Menus have a hard limit of **25 options**.
 * Select menu components must include page indicators
 * Navigation between pages via button components
 
-### 3.3 Testing Standards
+### 3.4 Testing Standards
 
 **Test Structure:**
 * **Unit Tests:** Context functions (`RaffleBot.Raffles`, `RaffleBot.Claims`)

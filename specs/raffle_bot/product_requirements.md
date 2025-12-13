@@ -67,6 +67,43 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
     * **Mechanism:** A GenServer process runs every 24 hours.
     * **Action:** Query new claims from the last 24h and post a summary to the Admin Channel.
 
+### 2.6 Guild Configuration (`/setup_raffle_admin`)
+* **Trigger:** Admin Slash Command (First-time setup).
+* **Authorization:** Requires Discord "Manage Server" permission.
+* **Inputs:**
+    * `bot_boss_role` - Discord role that will have admin access to raffle commands
+    * `user_channel` - Public channel where raffle posts will appear
+* **Interaction Flow:**
+    1. Admin runs command from the desired admin channel.
+    2. Bot automatically detects admin channel from command invocation location.
+    3. Bot stores guild configuration in database.
+    4. Bot confirms configuration with ephemeral success message.
+* **Post-Action:**
+    1. Guild configuration created/updated in database.
+    2. Authorization enabled for all admin commands.
+    3. Channel validation activated (soft warnings).
+
+### 2.7 Guild Reconfiguration (`/configure_raffle_admin`)
+* **Trigger:** Admin Slash Command.
+* **Authorization:** Requires Bot Boss role (from guild configuration).
+* **Inputs:** Same as `/setup_raffle_admin`.
+* **Interaction Flow:** Identical to setup, but requires existing Bot Boss role.
+* **Purpose:** Allows changing channels or Bot Boss role after initial setup.
+
+### 2.8 Authorization & Channel Validation
+* **Role-Based Authorization:**
+    * All admin commands require Bot Boss role (configured per-guild).
+    * Users without Bot Boss role receive ephemeral error message.
+    * Authorization checked before command execution.
+* **Channel Validation (Soft Enforcement):**
+    * Admin commands should be used in admin channel.
+    * User commands should be used in user channel.
+    * Wrong channel usage logs warning but allows execution.
+    * Provides helpful tip to users about designated channels.
+* **Unconfigured Guilds:**
+    * Before `/setup_raffle_admin` is run, commands work without restrictions.
+    * After configuration, authorization and validation are enforced.
+
 ## 3. UI/UX Specifications
 * **Embed Colors:** Green (`0x57F287`) for Active, Red (`0xED4245`) for Closed.
 * **Grid Format:** The list of spots must be displayed in the Embed Description or Fields as text.
