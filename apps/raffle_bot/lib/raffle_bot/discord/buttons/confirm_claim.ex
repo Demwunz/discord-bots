@@ -9,6 +9,7 @@ defmodule RaffleBot.Discord.Buttons.ConfirmClaim do
   alias RaffleBot.Raffles
   alias RaffleBot.Claims
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
+  alias RaffleBot.Discord.Helpers.ButtonRefresher
 
   def handle(%Interaction{data: %{"custom_id" => "confirm_claim_" <> rest}} = interaction) do
     [raffle_id, spot_number_str] = String.split(rest, "_", parts: 2)
@@ -23,7 +24,16 @@ defmodule RaffleBot.Discord.Buttons.ConfirmClaim do
          }) do
       {:ok, _claim} ->
         # Refresh all button messages for this raffle
-        refresh_raffle_buttons(raffle_id)
+        ButtonRefresher.refresh_raffle_buttons(raffle_id)
+
+        # Check if raffle is now sold out
+        raffle = Raffles.get_raffle!(raffle_id)
+        claims = Claims.get_claims_by_raffle(raffle_id)
+
+        if length(claims) == raffle.total_spots do
+          # Raffle is sold out - post payment button
+          post_payment_message(raffle)
+        end
 
         # Update ephemeral response
         discord_api().edit_interaction_response(
@@ -52,29 +62,36 @@ defmodule RaffleBot.Discord.Buttons.ConfirmClaim do
     end
   end
 
-  @doc """
-  Refreshes all button messages for a raffle after a claim is made.
-  Updates the first message and all additional button messages.
-  """
-  defp refresh_raffle_buttons(raffle_id) do
-    raffle = Raffles.get_raffle!(raffle_id)
-    claims = Claims.get_claims_by_raffle(raffle_id)
+  defp post_payment_message(raffle) do
+    content = """
+    🎉 **All Spots Claimed!**
 
-    # Update starter message (page 1)
-    buttons_page_1 = RaffleEmbed.build_spot_buttons(raffle, claims, 1)
+    This raffle is now full! If you claimed spots, please proceed with payment.
 
-    discord_api().edit_message(
+    Click the button below to view payment details and mark your spots as paid.
+    """
+
+    components = [
+      %{
+        type: 1,
+        components: [
+          %{
+            type: 2,
+            style: 1,
+            label: "💰 Pay for Your Spots",
+            custom_id: "payment_info_#{raffle.id}"
+          }
+        ]
+      }
+    ]
+
+    discord_api().create_message(
       raffle.channel_id,
-      raffle.message_id,
-      %{components: buttons_page_1}
+      "",
+      [
+        content: content,
+        components: components
+      ]
     )
-
-    # Update additional messages (pages 2+)
-    raffle.spot_button_message_ids
-    |> Enum.with_index(2)
-    |> Enum.each(fn {message_id, page} ->
-      buttons = RaffleEmbed.build_spot_buttons(raffle, claims, page)
-      discord_api().edit_message(raffle.channel_id, message_id, %{components: buttons})
-    end)
   end
 end

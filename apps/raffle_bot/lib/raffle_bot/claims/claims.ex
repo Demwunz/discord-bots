@@ -53,4 +53,15 @@ defmodule RaffleBot.Claims do
     )
     |> Repo.all()
   end
+
+  @doc """
+  Gets all claims for a specific user in a specific raffle.
+  """
+  def get_user_claims_for_raffle(user_id, raffle_id) do
+    from(c in Claim,
+      where: c.user_id == ^user_id and c.raffle_id == ^raffle_id,
+      order_by: [asc: c.spot_number]
+    )
+    |> Repo.all()
+  end
 end

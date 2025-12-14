@@ -8,6 +8,7 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
   alias RaffleBot.Raffles
   alias RaffleBot.GuildConfig
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
+  alias RaffleBot.Discord.Components.AdminThread
 
   def handle(
         %Interaction{
@@ -73,21 +74,59 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
             all_message_ids = message_ids ++ additional_ids
 
             # Update raffle with thread and message IDs
-            Raffles.update_raffle(raffle, %{
-              message_id: hd(all_message_ids),
-              channel_id: thread_id,
-              spot_button_message_ids: tl(all_message_ids)
-            })
+            {:ok, updated_raffle} =
+              Raffles.update_raffle(raffle, %{
+                message_id: hd(all_message_ids),
+                channel_id: thread_id,
+                spot_button_message_ids: tl(all_message_ids)
+              })
 
-            # Send success response (ephemeral)
-            discord_api().create_interaction_response(
-              interaction,
-              4,
-              %{
-                content: "✅ Raffle created! View it in <##{config.user_channel_id}>",
-                flags: 64
-              }
-            )
+            # Create admin forum thread in admin channel
+            admin_message = AdminThread.build_admin_message(updated_raffle, [])
+
+            case discord_api().start_forum_thread(
+                   config.admin_channel_id,
+                   "🎯 #{updated_raffle.title}",
+                   admin_message
+                 ) do
+              {:ok, %{"id" => admin_thread_id, "message" => %{"id" => admin_message_id}}} ->
+                # Update raffle with admin thread info
+                Raffles.update_raffle(updated_raffle, %{
+                  admin_thread_id: admin_thread_id,
+                  admin_thread_message_id: admin_message_id
+                })
+
+                # Send success response (ephemeral)
+                discord_api().create_interaction_response(
+                  interaction,
+                  4,
+                  %{
+                    content:
+                      "✅ Raffle created! View it in <##{config.user_channel_id}>\n📊 Admin thread: <##{admin_thread_id}>",
+                    flags: 64
+                  }
+                )
+
+              {:error, admin_reason} ->
+                # Admin thread creation failed, but user thread was successful
+                # Log error and continue
+                require Logger
+
+                Logger.warning(
+                  "Failed to create admin thread for raffle #{updated_raffle.id}: #{inspect(admin_reason)}"
+                )
+
+                # Send success response but note admin thread issue
+                discord_api().create_interaction_response(
+                  interaction,
+                  4,
+                  %{
+                    content:
+                      "✅ Raffle created! View it in <##{config.user_channel_id}>\n⚠️ Admin thread creation failed - check logs",
+                    flags: 64
+                  }
+                )
+            end
 
           {:ok, unexpected} ->
             # Handle unexpected successful response structure

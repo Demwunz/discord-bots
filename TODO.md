@@ -27,24 +27,37 @@
   - Admin confirmed: ✅ @username (green success)
 - **Multi-page Support**: Raffles >25 spots use multiple messages (Discord 25-button limit)
 
-### Known Issues to Fix
-1. **raffle_setup.ex line 60**: `discord_api().create_message/3` expects 3 params but signature is `create_message(channel_id, content, opts)`. Current code passes a map as 2nd param. Fix:
-   ```elixir
-   # WRONG (current):
-   discord_api().create_message(thread_id, %{content: "...", components: buttons}, [])
+### What Was Completed (Gemini Session)
+**Bugs Fixed:**
+1. ✅ **Bug #1** (raffle_setup.ex line 60): Fixed create_message signature to use keyword list
+2. ✅ **Bug #2** (nostrum_api.ex line 43): Replaced `Api.post/2` with `Nostrum.Api.request(:post, ...)`
+3. ✅ **Bug #3** (raffle_setup.ex): Added pattern matching for response structure validation
 
-   # RIGHT:
-   discord_api().create_message(thread_id, "", [content: "...", components: buttons])
-   ```
+### What Was Completed (Claude Session 2 - Current)
+**Priority 1 Completion:**
+1. ✅ Created shared `ButtonRefresher` helper module (`apps/raffle_bot/lib/raffle_bot/discord/helpers/button_refresher.ex`)
+2. ✅ Updated `ConfirmClaim` to use ButtonRefresher
+3. ✅ Updated `MarkPaidUser` to use ButtonRefresher (now refreshes spot buttons when admin marks paid)
 
-2. **Migrations not run**: User needs to run `mix ecto.migrate` before testing
+**Priority 2 Completion:**
+4. ✅ Created `AdminThread` component module (`apps/raffle_bot/lib/raffle_bot/discord/components/admin_thread.ex`)
+   - Builds admin embeds showing raffle status and stats
+   - Builds admin action buttons (Mark Paid, Extend, Close, Pick Winner)
+5. ✅ Updated `raffle_setup.ex` to create admin forum threads
+   - Creates admin thread in `admin_channel_id` after user thread
+   - Stores `admin_thread_id` and `admin_thread_message_id`
+   - Handles admin thread creation failures gracefully
+6. ✅ Implemented complete payment flow:
+   - `PaymentInfo` button handler - shows payment details to users
+   - `MarkSelfPaid` button handler - allows users to mark spots as paid
+   - `AdminConfirmPayment` button handler - admin confirms payment (turns buttons green)
+   - `AdminRejectPayment` button handler - admin rejects payment claim
+   - Added `Claims.get_user_claims_for_raffle/2` function
+7. ✅ Updated `ConfirmClaim` to post payment button when raffle sells out
+8. ✅ Updated Consumer routing for all new payment buttons
 
-3. **NostrumApi line 43**: Using `Api.post/2` which may not exist. Correct approach:
-   ```elixir
-   # Check Nostrum.Api documentation for correct method
-   # Likely: Nostrum.Api.create_forum_thread/3 or similar
-   # May need to use: Nostrum.Api.request(:post, "/channels/#{channel_id}/threads", body)
-   ```
+### Remaining Issues
+1. **Migrations not run**: User needs to run `mix ecto.migrate` before testing (requires Elixir environment or Docker setup)
 
 ## Priority 1: Per-Spot Claim Buttons
 
@@ -130,7 +143,7 @@
 
 ## Files Modified So Far
 
-### Created Files
+### Created Files (Session 1 - Claude)
 1. `apps/raffle_bot/priv/repo/migrations/20251214105658_add_spot_button_message_ids_to_raffles.exs`
 2. `apps/raffle_bot/priv/repo/migrations/20251214105730_add_payment_and_admin_thread_to_raffles.exs`
 3. `apps/raffle_bot/priv/repo/migrations/20251214105827_add_user_marked_paid_to_claims.exs`
@@ -138,17 +151,34 @@
 5. `apps/raffle_bot/lib/raffle_bot/discord/buttons/confirm_claim.ex`
 6. `apps/raffle_bot/lib/raffle_bot/discord/buttons/cancel_claim.ex`
 
-### Modified Files
+### Created Files (Session 3 - Claude)
+7. `apps/raffle_bot/lib/raffle_bot/discord/helpers/button_refresher.ex` - Shared button refresh helper
+8. `apps/raffle_bot/lib/raffle_bot/discord/components/admin_thread.ex` - Admin thread embeds and buttons
+9. `apps/raffle_bot/lib/raffle_bot/discord/buttons/payment_info.ex` - Payment details display
+10. `apps/raffle_bot/lib/raffle_bot/discord/buttons/mark_self_paid.ex` - User payment marking
+11. `apps/raffle_bot/lib/raffle_bot/discord/buttons/admin_confirm_payment.ex` - Admin payment confirmation
+12. `apps/raffle_bot/lib/raffle_bot/discord/buttons/admin_reject_payment.ex` - Admin payment rejection
+
+### Modified Files (Session 1 - Claude)
 1. `apps/raffle_bot/lib/raffle_bot/raffles/raffle.ex` - Added 4 new fields
 2. `apps/raffle_bot/lib/raffle_bot/claims/claim.ex` - Added 2 new fields
 3. `apps/raffle_bot/lib/raffle_bot/discord/embeds/raffle.ex` - Added spot button builders
 4. `apps/raffle_bot/lib/raffle_bot/discord/consumer.ex` - Added button routing
-5. `apps/raffle_bot/lib/raffle_bot/discord/modals/raffle_setup.ex` - Forum thread creation (⚠️ HAS BUGS)
-6. `apps/raffle_bot/lib/raffle_bot/discord/api.ex` - Added start_forum_thread callback
-7. `apps/raffle_bot/lib/raffle_bot/discord/nostrum_api.ex` - Implemented start_forum_thread (⚠️ MAY HAVE BUGS)
-8. `apps/raffle_bot/test/support/mock_api.ex` - Added mock start_forum_thread
+5. `apps/raffle_bot/lib/raffle_bot/discord/api.ex` - Added start_forum_thread callback
+6. `apps/raffle_bot/test/support/mock_api.ex` - Added mock start_forum_thread
+
+### Modified Files (Session 2 - Gemini)
+7. `apps/raffle_bot/lib/raffle_bot/discord/modals/raffle_setup.ex` - Fixed bugs, added response validation
+8. `apps/raffle_bot/lib/raffle_bot/discord/nostrum_api.ex` - Fixed API call with proper request method
+
+### Modified Files (Session 3 - Claude)
+9. `apps/raffle_bot/lib/raffle_bot/discord/buttons/confirm_claim.ex` - Uses ButtonRefresher, posts payment button
+10. `apps/raffle_bot/lib/raffle_bot/discord/selects/mark_paid_user.ex` - Added button refresh call
+11. `apps/raffle_bot/lib/raffle_bot/discord/modals/raffle_setup.ex` - Added admin thread creation
+12. `apps/raffle_bot/lib/raffle_bot/claims/claims.ex` - Added get_user_claims_for_raffle/2
+13. `apps/raffle_bot/lib/raffle_bot/discord/consumer.ex` - Added payment button routing
 
 ---
 
-**Last Updated**: 2025-12-14 (Claude session ended, passed to Gemini)
-**Session Summary**: Completed Priority 1 implementation (database, schemas, button handlers, consumer routing, forum thread creation). Has bugs to fix before testing. Next: mark paid flow refresh.
+**Last Updated**: 2025-12-14 (Session 3 - Claude)
+**Session Summary**: Completed Priority 1 & Priority 2 implementation. All features implemented except testing which requires running migrations and live bot.

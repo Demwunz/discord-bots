@@ -22,6 +22,10 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Buttons.ClaimSpotButton
   alias RaffleBot.Discord.Buttons.ConfirmClaim
   alias RaffleBot.Discord.Buttons.CancelClaim
+  alias RaffleBot.Discord.Buttons.PaymentInfo
+  alias RaffleBot.Discord.Buttons.MarkSelfPaid
+  alias RaffleBot.Discord.Buttons.AdminConfirmPayment
+  alias RaffleBot.Discord.Buttons.AdminRejectPayment
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
   alias RaffleBot.Discord.Authorization
@@ -94,6 +98,20 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"custom_id" => "cancel_claim"} ->
             CancelClaim.handle(interaction)
+
+          # Payment flow buttons
+          %{"custom_id" => "payment_info_" <> _rest} ->
+            PaymentInfo.handle(interaction)
+
+          %{"custom_id" => "mark_self_paid_" <> _rest} ->
+            MarkSelfPaid.handle(interaction)
+
+          # Admin payment confirmation buttons
+          %{"custom_id" => "admin_confirm_payment_" <> _rest} ->
+            handle_admin_command(interaction, &AdminConfirmPayment.handle/1)
+
+          %{"custom_id" => "admin_reject_payment_" <> _rest} ->
+            handle_admin_command(interaction, &AdminRejectPayment.handle/1)
 
           # Existing handlers (backwards compatibility)
           %{"custom_id" => "claim_spots"} ->

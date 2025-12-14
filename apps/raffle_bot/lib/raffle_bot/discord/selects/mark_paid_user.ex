@@ -8,6 +8,7 @@ defmodule RaffleBot.Discord.Selects.MarkPaidUser do
   alias RaffleBot.Claims
 
   alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
+  alias RaffleBot.Discord.Helpers.ButtonRefresher
   alias RaffleBot.Raffles
 
   def handle(%Interaction{data: %{"values" => claim_ids}} = interaction) do
@@ -26,6 +27,9 @@ defmodule RaffleBot.Discord.Selects.MarkPaidUser do
 
     raffle = Raffles.get_raffle!(raffle_id)
     claims = Claims.get_claims_by_raffle(raffle_id)
+
+    # Refresh all spot button messages to show updated payment status
+    ButtonRefresher.refresh_raffle_buttons(raffle_id)
 
     discord_api().edit_interaction_response(interaction, %{
       embeds: [RaffleEmbed.build(raffle, claims)],

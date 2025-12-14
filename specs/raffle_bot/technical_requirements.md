@@ -128,27 +128,38 @@ config :raffle_bot, RaffleBot.Repo,
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `id` | INTEGER (PK) | Internal DB ID |
-| `message_id` | INTEGER | Discord Message ID (The pinned post) |
-| `channel_id` | INTEGER | Channel ID where posted |
-| `title` | TEXT | |
+| `message_id` | INTEGER | Discord Message ID (Forum thread starter) |
+| `channel_id` | INTEGER | Forum Thread ID (user channel) |
+| `title` | TEXT | Raffle title |
 | `price` | DECIMAL | Price per spot |
 | `total_spots`| INTEGER | Max spots (e.g., 50) |
 | `description`| TEXT | Full text from template |
 | `active` | BOOLEAN | `true` = Open, `false` = Closed |
+| `spot_button_message_ids` | ARRAY[TEXT] | Additional message IDs for multi-page raffles (>25 spots) |
+| `payment_details` | TEXT | Payment instructions (Venmo, PayPal, etc.) |
+| `admin_thread_id` | TEXT | Forum thread ID in admin channel |
+| `admin_thread_message_id` | TEXT | First message ID in admin thread |
 | `timestamps` | UTC Datetime | `inserted_at`, `updated_at` |
 
 ### 2.2 Table: `claims`
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | INTEGER (PK) | |
+| `id` | INTEGER (PK) | Internal ID |
 | `raffle_id` | INTEGER (FK) | References `raffles.id` |
 | `user_id` | INTEGER | Discord User ID (BigInt) |
 | `spot_number`| INTEGER | The specific number claimed (e.g., 5) |
-| `is_paid` | BOOLEAN | Default `false` |
-| `timestamps` | UTC Datetime | |
+| `is_paid` | BOOLEAN | Default `false` - admin confirmed payment |
+| `user_marked_paid` | BOOLEAN | Default `false` - user self-marked as paid |
+| `user_marked_paid_at` | UTC Datetime | When user marked as paid (nullable) |
+| `timestamps` | UTC Datetime | `inserted_at`, `updated_at` |
 
 **Constraints:**
-* Unique Index on `[raffle_id, spot_number]` (Prevents double booking).
+* Unique Index on `[raffle_id, spot_number]` (Prevents double booking)
+
+**Payment Flow States:**
+1. Claimed, unpaid: `is_paid: false`, `user_marked_paid: false`
+2. User marked paid: `is_paid: false`, `user_marked_paid: true` (pending admin)
+3. Admin confirmed: `is_paid: true` (final state)
 
 ### 2.3 Table: `guild_configurations`
 | Column | Type | Description |
@@ -167,6 +178,45 @@ config :raffle_bot, RaffleBot.Repo,
 * Stores per-guild configuration for authorization and channel validation
 * Created via `/setup_raffle_admin` command
 * Updated via `/configure_raffle_admin` command
+
+### 2.4 UI Architecture: Forum-Based Raffle System
+
+**Channel Structure:**
+* **User Channel** (`user_channel_id`): Forum channel (e.g., `raffles-v2`)
+  - Each raffle = separate forum thread/post
+  - Thread starter contains raffle embed + spot buttons (page 1)
+  - Additional messages in thread for multi-page raffles (>25 spots)
+  - Public access for all server members
+
+* **Admin Channel** (`admin_channel_id`): Forum channel (e.g., `#raffle-admin`)
+  - Each raffle = separate admin forum thread
+  - Thread contains admin controls and payment notifications
+  - Only visible to users with channel access permissions
+
+**Button-Based Spot Claiming:**
+* Discord limit: 25 buttons per message (5 rows × 5 buttons)
+* Multi-page support: Raffles >25 spots create additional messages
+* Button states:
+  1. **Available**: Blue primary button (➡️ spot_number)
+  2. **Claimed, unpaid**: Gray secondary button (@username)
+  3. **User marked paid**: Gray button (✅ @username) - pending admin
+  4. **Admin confirmed**: Green success button (✅ @username)
+
+**Custom ID Patterns:**
+* Spot claim: `claim_spot_{raffle_id}_{spot_number}`
+* Claim confirmation: `confirm_claim_{raffle_id}_{spot_number}`
+* Payment info: `payment_info_{raffle_id}`
+* Self-mark paid: `mark_self_paid_{raffle_id}`
+* Admin confirm: `admin_confirm_payment_{raffle_id}_{user_id}`
+* Admin reject: `admin_reject_payment_{raffle_id}_{user_id}`
+
+**Payment Flow:**
+1. User claims spots → buttons update to gray with @username
+2. All spots claimed → "Pay for your spots" button posted to thread
+3. User clicks pay button → shows payment details + "Mark as Paid" button
+4. User marks as paid → notification sent to admin thread, buttons turn yellow/gray ✅
+5. Admin confirms → `is_paid` set to true, buttons turn green ✅
+6. Admin rejects → `user_marked_paid` reset to false, back to gray
 
 ---
 

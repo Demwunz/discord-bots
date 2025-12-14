@@ -9,6 +9,9 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
 ## 2. Functional Requirements
 
 ### 2.1 Raffle Creation (`/setup_raffle`)
+
+**Version 2.0 Update:** Raffles now create forum threads instead of simple messages.
+
 * **Trigger:** Slash Command.
 * **Inputs:** `Title`, `Price`, `Total Spots`, `Photo URL`.
 * **Interaction Flow:**
@@ -18,26 +21,76 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
         * `Grading Link` (Text)
         * `Duration` (Number of days)
         * `International Shipping` (Text, e.g., "No" or "Yes +$15")
+        * `Payment Details` (Text, e.g., "Venmo: @username")
     3.  **Output:**
-        * Generates a Discord Embed using the standard "Raffle Time!" text template.
-        * Pins the message to the channel.
-        * Attaches a **Persistent View** with a button labeled `[ 🎟️ Claim Spots ]`.
+        * Creates **User Forum Thread** in configured `user_channel_id`:
+          - Thread starter: Raffle embed + spot buttons (page 1: spots 1-25)
+          - Additional messages: More spot buttons if >25 spots
+        * Creates **Admin Forum Thread** in configured `admin_channel_id`:
+          - Thread starter: Admin embed + admin control buttons
+          - Used for payment notifications and admin actions
 
-### 2.2 Spot Claiming (User Interaction)
-* **Trigger:** User clicks the `[ 🎟️ Claim Spots ]` button.
+### 2.2 Spot Claiming (User Interaction) - Button-Based UI
+
+**Version 2.0 Update:** Spot claiming now uses direct button interactions instead of dropdown menus.
+
+* **Trigger:** User clicks a spot button (e.g., `➡️ 5`) on the raffle message.
 * **Interaction Flow:**
-    1.  Bot fetches currently available spots from the database (Ecto).
-    2.  Bot sends an **Ephemeral Message** (Private) with a **Multi-Select Dropdown Menu**.
-    3.  **Pagination Logic:**
-        * Discord dropdowns support max 25 items.
-        * **Constraint:** If open spots > 25, the bot must generate multiple dropdowns in the same message (e.g., "Select 1-25", "Select 26-50").
+    1.  Bot shows an **Ephemeral Confirmation Dialog** with spot details
+    2.  User clicks "✅ Confirm Claim" or "❌ Cancel"
+    3.  **Multi-Page Support:**
+        * Discord limit: 25 buttons per message (5 rows × 5 buttons)
+        * Raffles >25 spots: Additional messages posted in thread for spots 26-50, 51-75, etc.
 * **Post-Action:**
-    1.  **Validation:** Ensure spots weren't taken milliseconds ago.
-    2.  **Database:** Insert claim record (User ID, Spot ID).
-    3.  **Visual Update:** Edit the Pinned Embed to update the grid (e.g., `1. @Username`).
-    4.  **Sold Out Check:** If `Total Claims` == `Total Spots`, immediately DM the configured Admin Channel: *"🚨 SOLD OUT: [Raffle Title]"*.
+    1.  **Validation:** Unique constraint ensures no double-booking
+    2.  **Database:** Insert claim record (`raffle_id`, `user_id`, `spot_number`)
+    3.  **Visual Update:** All spot button messages refresh simultaneously
+        * Claimed spot: Gray button with @username
+        * Remaining spots: Stay blue with ➡️ and number
+    4.  **Sold Out Flow:** If `Total Claims` == `Total Spots`:
+        * "Pay for your spots" button posted to thread
+        * Admins notified in admin forum thread
 
-### 2.3 Payment Tracking (`/mark_paid`)
+### 2.3 Self-Service Payment Flow (New in v2.0)
+
+**Version 2.0 Update:** Users can now mark their own spots as paid for admin verification.
+
+* **Trigger:** User clicks "💰 Pay for Your Spots" button (posted when raffle sells out).
+* **Interaction Flow:**
+    1.  Bot shows **Ephemeral Payment Details**:
+        * User's claimed spots
+        * Total amount ($price × spot count)
+        * Payment instructions (Venmo, PayPal, etc.)
+        * "✅ Mark as Paid" button
+    2.  User completes payment externally
+    3.  User clicks "Mark as Paid"
+* **Post-Action:**
+    1.  **Database:** Set `user_marked_paid = true`, `user_marked_paid_at = DateTime.utc_now()`
+    2.  **Visual Update:** Spot buttons update to yellow/gray ✅ @username (pending admin verification)
+    3.  **Admin Notification:** Message posted to admin forum thread:
+        * User mention
+        * Spots and amount
+        * "✅ Confirm Payment" and "❌ Reject" buttons
+
+### 2.4 Admin Payment Confirmation (New in v2.0)
+
+**Version 2.0 Update:** Admins verify payments directly from admin forum threads.
+
+* **Trigger:** Admin clicks "✅ Confirm Payment" in admin thread notification.
+* **Post-Action:**
+    1.  **Database:** Set `is_paid = true`
+    2.  **Visual Update:** Spot buttons turn green ✅ @username
+    3.  **Admin Thread:** Confirmation message updated to show completed
+
+* **Reject Flow:** Admin clicks "❌ Reject"
+    1.  **Database:** Reset `user_marked_paid = false`
+    2.  **Visual Update:** Spot buttons return to gray @username
+    3.  User can mark as paid again after actual payment
+
+### 2.5 Legacy Payment Tracking (`/mark_paid`)
+
+**Note:** This command still works for backward compatibility.
+
 * **Trigger:** Admin Slash Command.
 * **Interaction Flow:**
     1.  Bot presents a dropdown of **Active Raffles**.
@@ -46,30 +99,31 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
     4.  Admin selects users and clicks Confirm.
 * **Post-Action:**
     1.  Update database: Set `is_paid = true`.
-    2.  Update Pinned Embed: Append checkmark to user entry (`1. @Username ✅`).
+    2.  Update spot buttons: Turn green ✅ @username.
 
-### 2.4 Winner Selection (`/pick_winner`)
+### 2.6 Winner Selection (`/pick_winner`)
 * **Trigger:** Admin Slash Command.
 * **Interaction Flow:**
     1.  Admin selects a **Closed** raffle.
     2.  Bot calculates a **Weighted Random Winner** (1 spot = 1 entry ticket).
-    3.  **Review Phase:** Bot posts the potential winner **only** to the Admin Channel.
+    3.  **Review Phase:** Bot posts the potential winner **only** to the Admin Channel/Thread.
         * Controls: `[ ✅ Confirm & Announce ]` and `[ 🔄 Re-Roll ]`.
 * **Confirmation Action:**
-    1.  Edit Pinned Embed: Add a `🏆 WINNER: @Username` field.
-    2.  Post Announcement: Send a congratulatory message to the `#general` channel.
+    1.  Edit raffle message: Add a `🏆 WINNER: @Username` field.
+    2.  Post Announcement: Send a congratulatory message to the raffle thread.
 
-### 2.5 Administration
+### 2.7 Administration
 * **Manual Close (`/end_raffle`):**
     * Admin selects an active raffle.
-    * Bot sets status to `active: false`, updates title to `[CLOSED]`, and disables the "Claim" button.
+    * Bot sets status to `active: false`, updates title to `[CLOSED]`, and disables spot buttons.
 * **Daily Reporting:**
     * **Mechanism:** A GenServer process runs every 24 hours.
     * **Action:** Query new claims from the last 24h and post a summary to the Admin Channel.
 
-### 2.6 Guild Configuration (`/setup_raffle_admin`)
+### 2.8 Guild Configuration (`/setup_raffle_admin`)
 * **Trigger:** Admin Slash Command (First-time setup).
 * **Authorization:** Requires Discord "Manage Server" permission.
+* **Note:** Both user and admin channels must be **Forum Channels** (Discord channel type 15).
 * **Inputs:**
     * `bot_boss_role` - Discord role that will have admin access to raffle commands
     * `user_channel` - Public channel where raffle posts will appear

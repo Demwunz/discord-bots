@@ -10,7 +10,10 @@
       "Bash(git commit:*)",
       "Bash(git push)",
       "Bash(fly status:*)",
-      "Bash(jobs:*)"
+      "Bash(jobs:*)",
+      "Bash(mix ecto.migrations:*)",
+      "Bash(mix ecto.migrate:*)",
+      "Bash(docker-compose ps:*)"
     ]
   }
 }
