@@ -35,6 +35,11 @@ COPY apps ./apps
 # Set the mix environment to prod
 ENV MIX_ENV=prod
 
+# Configure Hex to handle network issues more robustly
+# Reduces concurrency and increases timeout for slower/unreliable networks
+ENV HEX_HTTP_CONCURRENCY=1
+ENV HEX_HTTP_TIMEOUT=120
+
 # Get and compile dependencies
 RUN mix deps.get --only prod && mix deps.compile
 
