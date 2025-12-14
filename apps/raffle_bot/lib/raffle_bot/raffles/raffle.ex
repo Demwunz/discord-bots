@@ -18,6 +18,7 @@ defmodule RaffleBot.Raffles.Raffle do
     field :total_spots, :integer
     field :description, :string
     field :photo_url, :string
+    field :photo_urls, {:array, :string}, default: []
     field :grading_link, :string
     field :duration_days, :integer, default: 7
     field :international_shipping, :string, default: "Contact Admin"
@@ -45,6 +46,7 @@ defmodule RaffleBot.Raffles.Raffle do
       :total_spots,
       :description,
       :photo_url,
+      :photo_urls,
       :grading_link,
       :duration_days,
       :international_shipping,

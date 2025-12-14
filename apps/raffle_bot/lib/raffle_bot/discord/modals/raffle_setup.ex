@@ -45,15 +45,17 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
             # Safely extracted thread_id and first_message_id
             message_ids = [first_message_id]
 
-            # If > 25 spots, create additional messages as thread replies
+            # If > 20 spots, create additional messages as thread replies
+            # (20 spots per page to leave room for utility row)
+            spots_per_page = 20
             additional_ids =
-              if raffle.total_spots > 25 do
-                num_pages = ceil(raffle.total_spots / 25)
+              if raffle.total_spots > spots_per_page do
+                num_pages = ceil(raffle.total_spots / spots_per_page)
 
                 for page <- 2..num_pages do
                   buttons = RaffleEmbed.build_spot_buttons(raffle, [], page)
-                  start_spot = (page - 1) * 25 + 1
-                  end_spot = min(page * 25, raffle.total_spots)
+                  start_spot = (page - 1) * spots_per_page + 1
+                  end_spot = min(page * spots_per_page, raffle.total_spots)
 
                   {:ok, msg} =
                     discord_api().create_message(

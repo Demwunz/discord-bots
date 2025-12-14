@@ -103,6 +103,25 @@ defmodule RaffleBot.Discord.Components.AdminThread do
   def build_admin_buttons(%Raffle{} = raffle) do
     components = []
 
+    # Photos button (always shown, allows adding/updating photos)
+    photo_label = if has_photos?(raffle), do: "📸 Update Photos", else: "📸 Add Photos"
+
+    components =
+      components ++
+        [
+          %{
+            type: 1,
+            components: [
+              %{
+                type: 2,
+                style: 2,  # Secondary (gray)
+                label: photo_label,
+                custom_id: "admin_add_photos_#{raffle.id}"
+              }
+            ]
+          }
+        ]
+
     # Management buttons (if active)
     components =
       if raffle.active do
@@ -158,6 +177,10 @@ defmodule RaffleBot.Discord.Components.AdminThread do
 
     components
   end
+
+  defp has_photos?(%Raffle{photo_urls: urls}) when is_list(urls) and length(urls) > 0, do: true
+  defp has_photos?(%Raffle{photo_url: url}) when is_binary(url) and url != "", do: true
+  defp has_photos?(_), do: false
 
   @doc """
   Builds a complete admin thread message with embed and buttons.

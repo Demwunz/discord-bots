@@ -26,6 +26,8 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Buttons.MarkSelfPaid
   alias RaffleBot.Discord.Buttons.AdminConfirmPayment
   alias RaffleBot.Discord.Buttons.AdminRejectPayment
+  alias RaffleBot.Discord.Buttons.AdminAddPhotos
+  alias RaffleBot.Discord.Buttons.MySpots
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
   alias RaffleBot.Discord.Authorization
@@ -113,6 +115,17 @@ defmodule RaffleBot.Discord.Consumer do
           %{"custom_id" => "admin_reject_payment_" <> _rest} ->
             handle_admin_command(interaction, &AdminRejectPayment.handle/1)
 
+          %{"custom_id" => "admin_add_photos_" <> _rest} ->
+            handle_admin_command(interaction, &AdminAddPhotos.handle/1)
+
+          %{"custom_id" => "cancel_photo_upload_" <> _rest} ->
+            # Just delete the prompt message
+            :noop
+
+          # User utility buttons
+          %{"custom_id" => "my_spots_" <> _rest} ->
+            MySpots.handle(interaction)
+
           # Existing handlers (backwards compatibility)
           %{"custom_id" => "claim_spots"} ->
             ClaimSpots.handle(interaction)
@@ -137,7 +150,97 @@ defmodule RaffleBot.Discord.Consumer do
     Task.await(task, 15000)
   end
 
+  # Handle message create events for photo uploads
+  def handle_event({:MESSAGE_CREATE, message, _ws_state}) do
+    # Check if this is a reply with attachments in an admin thread
+    handle_photo_upload(message)
+  end
+
   def handle_event(_event), do: :ok
+
+  # Process potential photo uploads in admin threads
+  defp handle_photo_upload(%{
+         attachments: attachments,
+         channel_id: channel_id,
+         referenced_message: %{content: content}
+       })
+       when is_list(attachments) and length(attachments) > 0 do
+    # Check if the referenced message is our photo upload prompt
+    if String.contains?(content, "Reply to this message with photos") do
+      # Extract raffle title from the message
+      case Regex.run(~r/to add them to \*\*(.+)\*\*/, content) do
+        [_, raffle_title] ->
+          process_photo_attachments(channel_id, raffle_title, attachments)
+
+        _ ->
+          :noop
+      end
+    end
+  end
+
+  defp handle_photo_upload(_), do: :noop
+
+  defp process_photo_attachments(channel_id, raffle_title, attachments) do
+    alias RaffleBot.Raffles
+
+    # Find raffle by admin thread ID (channel_id is the thread ID)
+    case Raffles.get_raffle_by_admin_thread(to_string(channel_id)) do
+      nil ->
+        :noop
+
+      raffle ->
+        # Extract image URLs from attachments
+        photo_urls =
+          attachments
+          |> Enum.filter(fn att ->
+            content_type = Map.get(att, :content_type, "")
+            String.starts_with?(content_type, "image/")
+          end)
+          |> Enum.map(& &1.url)
+
+        if length(photo_urls) > 0 do
+          # Update raffle with new photos
+          Raffles.update_raffle(raffle, %{photo_urls: photo_urls})
+
+          # Update the raffle embed in the user thread
+          update_raffle_embed_with_photos(raffle, photo_urls)
+
+          # Send confirmation in admin thread
+          api_module = Application.get_env(:raffle_bot, :discord_api) || Nostrum.Api
+          api_module.create_message(
+            channel_id,
+            "",
+            [content: "✅ **#{length(photo_urls)} photo(s) added** to #{raffle_title}!"]
+          )
+        end
+    end
+  end
+
+  defp update_raffle_embed_with_photos(raffle, photo_urls) do
+    alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
+    alias RaffleBot.Claims
+
+    api_module = Application.get_env(:raffle_bot, :discord_api) || Nostrum.Api
+    claims = Claims.get_claims_by_raffle(raffle.id)
+
+    # Rebuild the embed with photos
+    embed = RaffleEmbed.build(raffle, claims)
+    embed_with_photos = add_photos_to_embed(embed, photo_urls)
+
+    api_module.edit_message(
+      raffle.channel_id,
+      raffle.message_id,
+      %{embeds: [embed_with_photos]}
+    )
+  end
+
+  defp add_photos_to_embed(embed, [first_url | _rest] = _photo_urls) do
+    # Discord embeds support one main image
+    # Set the first photo as the embed image
+    Map.put(embed, :image, %{url: first_url})
+  end
+
+  defp add_photos_to_embed(embed, _), do: embed
 
   # Private helper for handling admin commands with authorization and channel validation
   defp handle_admin_command(interaction, command_handler) do

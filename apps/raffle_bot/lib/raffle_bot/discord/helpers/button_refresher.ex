@@ -3,7 +3,7 @@ defmodule RaffleBot.Discord.Helpers.ButtonRefresher do
   Helper module for refreshing raffle spot button messages.
 
   This module handles updating all button messages when claims change,
-  including multi-page raffles with >25 spots.
+  including multi-page raffles with >20 spots (20 spots per page + utility row).
   """
 
   use RaffleBot.Discord.ApiConsumer
@@ -15,8 +15,8 @@ defmodule RaffleBot.Discord.Helpers.ButtonRefresher do
   Refreshes all button messages for a raffle.
 
   This updates:
-  - The first message (page 1, spots 1-25)
-  - All additional messages (pages 2+, spots 26+)
+  - The first message (page 1, spots 1-20 + utility row)
+  - All additional messages (pages 2+, spots 21+)
 
   Used after:
   - A user claims a spot

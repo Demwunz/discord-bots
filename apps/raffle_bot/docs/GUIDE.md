@@ -86,17 +86,24 @@ Browse the `#raffles-v2` forum channel. Each raffle is a separate thread with:
 
 #### Step 2: Claim a Spot
 
-1. Find an available spot (blue button with arrow)
-2. Click the spot number you want
+1. Find an available spot (blue button with number)
+2. Click the spot you want (e.g., "5. Claim")
 3. Confirm in the popup dialog
 4. Your name appears on the button
 
 ```
-Before: [ -> 5 ]      (blue, available)
+Before: [ 5. Claim ]  (blue, available)
 After:  [ @YourName ] (gray, claimed)
 ```
 
-#### Step 3: Pay for Your Spots
+#### Step 3: Check Your Spots
+
+Click the **"My Spots"** button at the bottom of the raffle to see:
+- Which spots you've claimed
+- Total amount owed
+- Payment status for each spot
+
+#### Step 4: Pay for Your Spots
 
 When all spots are claimed:
 1. A payment button appears in the thread
@@ -107,30 +114,28 @@ When all spots are claimed:
 
 Your button changes to show pending status:
 ```
-[ checkmark @YourName ] (gray with checkmark, waiting admin confirmation)
+[ 💵 @YourName ] (gray with money emoji, waiting admin confirmation)
 ```
 
-#### Step 4: Wait for Confirmation
+#### Step 5: Wait for Confirmation
 
 The admin will verify your payment and confirm it. Your button turns green:
 ```
-[ @YourName checkmark ] (green, payment confirmed)
+[ @YourName ✅ ] (green, payment confirmed)
 ```
 
 ### Button States Reference
 
 | Appearance | Meaning |
 |------------|---------|
-| Blue with arrow | Available - click to claim |
-| Gray with @name | Claimed, payment pending |
-| Gray with checkmark @name | User marked as paid (waiting admin) |
-| Green with @name checkmark | Admin confirmed payment |
+| `[ 5. Claim ]` (blue) | Available - click to claim |
+| `[ @YourName ]` (gray) | Claimed, payment pending |
+| `[ 💵 @YourName ]` (gray) | User marked as paid (waiting admin) |
+| `[ @YourName ✅ ]` (green) | Admin confirmed payment |
 
 ### Check Your Spots
 
-**Command:** `/my_spots`
-
-Shows all spots you've claimed across all raffles with payment status.
+Click the **🎟️ My Spots** button on any raffle to see your claimed spots and payment status.
 
 ---
 
@@ -145,19 +150,29 @@ Opens a form with these fields:
 | Field | Required | Description |
 |-------|----------|-------------|
 | Title | Yes | Name of the raffle |
-| Price | Yes | Cost per spot (numbers only) |
+| Price per Spot | Yes | Cost per spot (numbers only) |
 | Total Spots | Yes | Number of available spots |
+| Payment Details | No | How to pay (Venmo: @user, PayPal: email) |
 | Description | Yes | Details about the item |
-| Photo URL | No | Image URL for the embed |
-| Grading Link | No | CGC/PSA verification link |
-| Duration | No | Days until auto-close (default: 7) |
-| International Shipping | No | Shipping terms |
-| Payment Details | No | How to pay (Venmo, PayPal, etc.) |
 
 **What Happens:**
 1. A forum thread is created in `#raffles-v2`
 2. An admin thread is created in `#raffle-admin`
 3. Spot buttons appear for users to claim
+
+### Adding Photos
+
+Photos are added separately after creating the raffle:
+
+1. Go to the raffle's admin thread in `#raffle-admin`
+2. Click the **📸 Add Photos** button
+3. Reply to the prompt message with your photo attachments
+4. The bot will add the photos to the raffle embed
+
+**Tips:**
+- Attach up to 10 images per message
+- Send multiple replies to add more photos
+- New photos replace existing photos
 
 ### Admin Thread
 
@@ -172,10 +187,11 @@ Each raffle gets a dedicated admin thread showing:
 
 | Button | Action |
 |--------|--------|
-| Mark Paid | Mark users' spots as paid |
-| Extend Duration | Add 7 days to raffle |
-| Close Raffle | End the raffle early |
-| Pick Winner | Randomly select winner (closed raffles only) |
+| 📸 Add Photos | Upload photos for the raffle |
+| 💰 Mark Paid | Mark users' spots as paid |
+| ⏰ Extend Duration | Add 7 days to raffle |
+| 🔒 Close Raffle | End the raffle early |
+| 🏆 Pick Winner | Randomly select winner (closed raffles only) |
 
 ### Payment Verification Flow
 
@@ -260,24 +276,26 @@ The bot automatically posts a summary of new claims from the last 24 hours to th
 ### Spot Button Grid
 
 ```
-Spots 1-25:
-[ -> 1 ] [ -> 2 ] [ @Kim ] [ -> 4 ] [ -> 5 ]
-[ @Joe ] [ -> 7 ] [ -> 8 ] [ @Amy ] [ -> 10 ]
-[ -> 11] [@Sam v] [ -> 13] [ -> 14] [ -> 15]
-[ -> 16] [ -> 17] [ -> 18] [ -> 19] [ -> 20]
-[ -> 21] [ -> 22] [ -> 23] [ -> 24] [ -> 25]
+Spots 1-20:
+[1. Claim] [2. Claim] [ @Kim  ] [4. Claim] [5. Claim]
+[ @Joe  ] [7. Claim] [8. Claim] [ @Amy  ] [10.Claim]
+[11.Claim] [@Sam ✅] [13.Claim] [14.Claim] [15.Claim]
+[16.Claim] [17.Claim] [18.Claim] [19.Claim] [20.Claim]
+
+[🎟️ My Spots]
 
 Legend:
-[ -> # ]   = Available (blue)
-[ @Name ]  = Claimed, unpaid (gray)
-[ @Name v] = Admin confirmed paid (green)
+[#. Claim] = Available (blue)
+[ @Name ] = Claimed, unpaid (gray)
+[ 💵 @Name ] = User marked paid (gray)
+[ @Name ✅] = Admin confirmed paid (green)
 ```
 
-### Large Raffles (>25 spots)
+### Large Raffles (>20 spots)
 
-For raffles with more than 25 spots:
-- First message shows spots 1-25
-- Reply messages show spots 26-50, 51-75, etc.
+For raffles with more than 20 spots:
+- First message shows spots 1-20 plus the My Spots button
+- Reply messages show spots 21-40, 41-60, etc.
 
 ### Admin Thread View
 

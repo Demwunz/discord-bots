@@ -32,6 +32,10 @@ defmodule RaffleBot.Raffles do
     Repo.get_by(Raffle, message_id: message_id)
   end
 
+  def get_raffle_by_admin_thread(admin_thread_id) do
+    Repo.get_by(Raffle, admin_thread_id: admin_thread_id)
+  end
+
   def list_raffles(), do: Repo.all(Raffle)
 
   def list_active_raffles() do

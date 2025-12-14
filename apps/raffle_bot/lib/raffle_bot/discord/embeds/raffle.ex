@@ -51,6 +51,7 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
   @doc """
   Builds spot button components for a given raffle page.
   Discord limits buttons to 25 per message (5 rows × 5 buttons).
+  We reserve one row for utility buttons, so max 20 spot buttons per page.
 
   ## Parameters
     - raffle: The Raffle struct
@@ -58,38 +59,64 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
     - page: Page number (1-indexed) for pagination
 
   ## Returns
-    List of action row components (max 5 rows with 5 buttons each)
+    List of action row components (max 4 rows of spots + 1 utility row)
   """
   def build_spot_buttons(%Raffle{} = raffle, claims, page \\ 1) do
-    # Calculate spot range for this page (25 spots per page)
-    start_spot = (page - 1) * 25 + 1
-    end_spot = min(page * 25, raffle.total_spots)
+    # Calculate spot range for this page (20 spots per page to leave room for utility row)
+    spots_per_page = 20
+    start_spot = (page - 1) * spots_per_page + 1
+    end_spot = min(page * spots_per_page, raffle.total_spots)
 
-    # Build button grid (5 rows × 5 buttons)
-    start_spot..end_spot
-    |> Enum.chunk_every(5)  # 5 buttons per row
-    |> Enum.map(fn spot_numbers ->
-      %{
-        type: 1,  # Action row
-        components: Enum.map(spot_numbers, &build_spot_button(raffle, claims, &1))
-      }
-    end)
+    # Build button grid (4 rows × 5 buttons for spots)
+    spot_rows =
+      start_spot..end_spot
+      |> Enum.chunk_every(5)  # 5 buttons per row
+      |> Enum.map(fn spot_numbers ->
+        %{
+          type: 1,  # Action row
+          components: Enum.map(spot_numbers, &build_spot_button(raffle, claims, &1))
+        }
+      end)
+
+    # Add utility row with "My Spots" button (only on first page)
+    if page == 1 do
+      spot_rows ++ [build_utility_row(raffle)]
+    else
+      spot_rows
+    end
+  end
+
+  @doc """
+  Builds the utility button row with "My Spots" button.
+  """
+  def build_utility_row(%Raffle{} = raffle) do
+    %{
+      type: 1,  # Action row
+      components: [
+        %{
+          type: 2,
+          style: 2,  # Secondary (gray)
+          label: "🎟️ My Spots",
+          custom_id: "my_spots_#{raffle.id}"
+        }
+      ]
+    }
   end
 
   # Builds a single spot button based on its claim status.
   # Button States:
-  #   - Available: Blue primary button with ➡️ and spot number
+  #   - Available: Blue primary button with numbered claim label
   #   - Claimed (unpaid): Gray secondary button with @username, disabled
-  #   - User marked as paid (pending admin confirmation): Gray with ✅ @username
+  #   - User marked as paid (pending admin confirmation): Gray with 💵 @username
   #   - Admin confirmed paid: Green success button with ✅ @username, disabled
   defp build_spot_button(raffle, claims, spot_number) do
     case find_claim(claims, spot_number) do
       nil ->
-        # Available spot
+        # Available spot - numbered claim button
         %{
           type: 2,  # Button
           style: 1,  # Primary (blue)
-          label: "➡️ #{spot_number}",
+          label: "#{spot_number}. Claim",
           custom_id: "claim_spot_#{raffle.id}_#{spot_number}"
         }
 
@@ -104,11 +131,11 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
         }
 
       %{user_marked_paid: true, user_id: user_id} ->
-        # User marked as paid (pending admin confirmation)
+        # User marked as paid (pending admin confirmation) - money emoji indicates pending
         %{
           type: 2,
-          style: 2,  # Secondary (gray) - will be yellow when Discord supports it
-          label: "✅ " <> truncate_username(format_username(user_id), 75),
+          style: 2,  # Secondary (gray)
+          label: "💵 " <> truncate_username(format_username(user_id), 75),
           custom_id: "user_paid_#{raffle.id}_#{spot_number}",
           disabled: true
         }
