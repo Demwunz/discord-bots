@@ -32,7 +32,7 @@ defmodule RaffleBot.Discord.Commands.SetupRaffle do
             %{
               type: 4,
               custom_id: "price",
-              label: "Price per Spot",
+              label: "Price per Spot (numbers only)",
               style: 1,
               required: true,
               placeholder: "e.g., 10"
@@ -57,11 +57,11 @@ defmodule RaffleBot.Discord.Commands.SetupRaffle do
           components: [
             %{
               type: 4,
-              custom_id: "payment_details",
-              label: "Payment Details",
+              custom_id: "grading_link",
+              label: "Grading Link (optional)",
               style: 1,
               required: false,
-              placeholder: "e.g., Venmo: @username, PayPal: email@example.com"
+              placeholder: "e.g., https://cgc.com/cert/1234567"
             }
           ]
         },

@@ -6,25 +6,69 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
   alias Nostrum.Struct.Embed
   alias RaffleBot.Raffles.Raffle
 
-  def build(%Raffle{} = raffle, claims) do
-    spots_claimed = length(claims)
-    spots_remaining = raffle.total_spots - spots_claimed
-    participants = Enum.map(claims, &" <@#{&1.user_id}>") |> Enum.join(", ")
+  def build(%Raffle{} = raffle, _claims) do
+    description = build_description(raffle)
 
-    %Embed{
-      title: "Raffle Time!",
-      description: raffle.description,
-      color: 0x57F287,
-      fields: [
-        %{name: "Title", value: raffle.title, inline: true},
-        %{name: "Price", value: to_string(raffle.price), inline: true},
-        %{name: "Total Spots", value: to_string(raffle.total_spots), inline: true},
-        %{name: "Spots Claimed", value: to_string(spots_claimed), inline: true},
-        %{name: "Spots Remaining", value: to_string(spots_remaining), inline: true},
-        %{name: "Participants", value: participants}
-      ]
+    embed = %Embed{
+      title: "🎟️ Raffle Time! — #{raffle.title}",
+      description: description,
+      color: 0x57F287
     }
+
+    # Add image if photos exist
+    add_image_to_embed(embed, raffle)
   end
+
+  defp build_description(raffle) do
+    sections = [
+      # Description
+      raffle.description,
+      "",
+      # Grading link (if provided)
+      build_grading_link(raffle.grading_link),
+      # Price and spots info
+      "💵 Spots are **$#{raffle.price}** each — grab as many as you want!",
+      "🎯 **#{raffle.total_spots}** total spots — pick your spot by clicking the buttons below!",
+      "",
+      "Raffles will run as soon as all spots are filled.",
+      "If we don't fill it up within **#{raffle.duration_days || 7}** days, this one will close and we'll kick off a fresh raffle.",
+      "",
+      # Shipping section
+      "📦 **Shipping Info:**",
+      "🇺🇸 US: #{raffle.us_shipping || "Free USPS Ground Advantage"}",
+      build_international_shipping(raffle.international_shipping),
+      "",
+      # Payment section
+      "💳 **Payment:**",
+      "Only collected once all spots are full — #{build_payment_details(raffle.payment_details)}"
+    ]
+
+    sections
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join("\n")
+  end
+
+  defp build_grading_link(nil), do: nil
+  defp build_grading_link(""), do: nil
+  defp build_grading_link(link), do: "🔗 **Grading:** [View Certificate](#{link})\n"
+
+  defp build_international_shipping(nil), do: "🌍 No international shipping for this raffle."
+  defp build_international_shipping(""), do: "🌍 No international shipping for this raffle."
+  defp build_international_shipping(details), do: "🌍 International: #{details}"
+
+  defp build_payment_details(nil), do: "Venmo, Zelle or PayPal is good to go."
+  defp build_payment_details(""), do: "Venmo, Zelle or PayPal is good to go."
+  defp build_payment_details(details), do: details
+
+  defp add_image_to_embed(embed, %Raffle{photo_urls: [first_url | _]}) do
+    Map.put(embed, :image, %{url: first_url})
+  end
+
+  defp add_image_to_embed(embed, %Raffle{photo_url: url}) when is_binary(url) and url != "" do
+    Map.put(embed, :image, %{url: url})
+  end
+
+  defp add_image_to_embed(embed, _raffle), do: embed
 
   def components(%Raffle{} = raffle, claims) do
     spots_claimed = length(claims)

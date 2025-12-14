@@ -21,7 +21,8 @@ defmodule RaffleBot.Raffles.Raffle do
     field :photo_urls, {:array, :string}, default: []
     field :grading_link, :string
     field :duration_days, :integer, default: 7
-    field :international_shipping, :string, default: "Contact Admin"
+    field :us_shipping, :string, default: "Free USPS Ground Advantage"
+    field :international_shipping, :string
     field :active, :boolean, default: true
     field :closed_at, :utc_datetime
     field :auto_close_at, :utc_datetime
@@ -49,6 +50,7 @@ defmodule RaffleBot.Raffles.Raffle do
       :photo_urls,
       :grading_link,
       :duration_days,
+      :us_shipping,
       :international_shipping,
       :active,
       :closed_at,

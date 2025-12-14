@@ -149,11 +149,17 @@ Opens a form with these fields:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| Title | Yes | Name of the raffle |
-| Price per Spot | Yes | Cost per spot (numbers only) |
+| Title | Yes | Name of the raffle (e.g., "Spawn #1 CGC 9.8") |
+| Price per Spot | Yes | Cost per spot (numbers only, e.g., "10") |
 | Total Spots | Yes | Number of available spots |
-| Payment Details | No | How to pay (Venmo: @user, PayPal: email) |
+| Grading Link | No | Link to CGC/CBCS certificate (optional) |
 | Description | Yes | Details about the item |
+
+**Default Settings:**
+- **Duration:** 7 days (raffle closes if not filled)
+- **US Shipping:** Free USPS Ground Advantage
+- **International Shipping:** Not available by default
+- **Payment:** Venmo, Zelle, or PayPal accepted
 
 **What Happens:**
 1. A forum thread is created in `#raffles-v2`
@@ -259,18 +265,33 @@ The bot automatically posts a summary of new claims from the last 24 hours to th
 ### Raffle Embed
 
 ```
-+----------------------------------+
-|  Raffle Time!                    |
-+----------------------------------+
-|  [Image if provided]             |
-|                                  |
-|  Title: Amazing Item             |
-|  Price: $10                      |
-|  Total Spots: 25                 |
-|  Spots Claimed: 15               |
-|  Spots Remaining: 10             |
-|  Participants: @User1, @User2... |
-+----------------------------------+
++------------------------------------------+
+| 🎟️ Raffle Time! — Amazing Item            |
++------------------------------------------+
+| [Image if photos added]                  |
+|                                          |
+| A beautiful CGC 9.8 graded comic...      |
+|                                          |
+| 🔗 Grading: View Certificate (if link)   |
+|                                          |
+| 💵 Spots are $10 each — grab as many     |
+|    as you want!                          |
+| 🎯 25 total spots — pick your spot by    |
+|    clicking the buttons below!           |
+|                                          |
+| Raffles will run as soon as all spots    |
+| are filled.                              |
+| If we don't fill it up within 7 days,    |
+| this one will close.                     |
+|                                          |
+| 📦 Shipping Info:                        |
+| 🇺🇸 US: Free USPS Ground Advantage        |
+| 🌍 No international shipping             |
+|                                          |
+| 💳 Payment:                              |
+| Only collected once all spots are full   |
+| — Venmo, Zelle or PayPal is good to go.  |
++------------------------------------------+
 ```
 
 ### Spot Button Grid
