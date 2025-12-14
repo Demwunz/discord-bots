@@ -1,166 +1,341 @@
+# Raffle Bot User Guide
 
-# Discord Raffle Bot Guide
-
-Welcome to the Raffle Bot! This guide explains everything you need to know to manage paid community raffles directly within your Discord server.
-
-## 🌟 Overview
-
-The Raffle Bot automates the entire raffle process, from creation to winner selection. It replaces clunky spreadsheets with a real-time, persistent system, making raffles fair, transparent, and easy to manage.
+A Discord bot for managing community raffles with real-time spot claiming, payment tracking, and automated winner selection.
 
 ---
 
-## ⚙️ Initial Setup (First Time Only)
+## Table of Contents
 
-Before using the raffle bot, a server administrator must configure it. This only needs to be done once when the bot is first added to your Discord server.
+1. [Overview](#overview)
+2. [Getting Started](#getting-started)
+3. [For Users](#for-users)
+4. [For Administrators](#for-administrators)
+5. [Visual Reference](#visual-reference)
+6. [FAQ](#faq)
+
+---
+
+## Overview
+
+The Raffle Bot automates the entire raffle process within Discord:
+
+- **Create raffles** with customizable spots, pricing, and descriptions
+- **Claim spots** directly by clicking buttons (no complex menus)
+- **Track payments** with visual status indicators
+- **Pick winners** randomly with fair spot-based weighting
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| Per-Spot Buttons | Click directly on the spot you want |
+| Real-Time Updates | All users see changes instantly |
+| Payment Tracking | Visual indicators for paid/unpaid status |
+| Admin Controls | Dedicated admin thread per raffle |
+| Forum Organization | Each raffle gets its own thread |
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-1. **Create Required Channels:**
-   - `#raffle-admin` - Private channel for admin commands and notifications
-   - `#raffles-v2` - Public channel where raffle posts will appear
+Before using the bot, your server needs:
 
-2. **Create Required Role:**
-   - `Bot Boss` - Role that grants admin access to raffle commands
+1. **Two Forum Channels:**
+   - `#raffle-admin` - Private channel for admin controls
+   - `#raffles-v2` - Public channel for raffle posts
 
-3. **Invite the Bot:**
-   - Add the bot to your Discord server with appropriate permissions
+2. **Bot Boss Role:**
+   - Create a role named `Bot Boss`
+   - Assign to users who should manage raffles
 
-### Running Initial Configuration
+3. **Bot Invitation:**
+   - Add the bot to your server with appropriate permissions
 
-**In the `#raffle-admin` channel**, a user with "Manage Server" permissions should run:
+### Initial Setup (One Time)
 
+A server administrator must configure the bot once:
+
+**In `#raffle-admin`, run:**
 ```
 /setup_raffle_admin bot_boss_role:@BotBoss user_channel:#raffles-v2
 ```
 
-**Parameters:**
-- `bot_boss_role` - The Discord role that should have admin access (e.g., @BotBoss)
-- `user_channel` - The public channel where raffle posts will appear (e.g., #raffles-v2)
+This configures:
+- Which channel receives raffle posts
+- Which role has admin permissions
+- The admin channel (detected automatically)
 
-**What This Does:**
-- Automatically detects the admin channel (the channel where you run the command)
-- Stores the user channel for raffle posts
-- Configures which role has admin permissions
-- Enables authorization and channel validation
-
-**Important Notes:**
-- Only users with the Bot Boss role can use admin commands after configuration
-- Admin commands will work best when used in the admin channel (soft warning if used elsewhere)
-- You can update the configuration anytime with `/configure_raffle_admin`
-
-### Updating Configuration Later
-
-If you need to change channels or roles:
-
+**Updating Configuration Later:**
 ```
 /configure_raffle_admin bot_boss_role:@NewRole user_channel:#new-channel
 ```
 
-This command requires the Bot Boss role and will update all settings.
+---
+
+## For Users
+
+### How to Join a Raffle
+
+#### Step 1: Find a Raffle
+
+Browse the `#raffles-v2` forum channel. Each raffle is a separate thread with:
+- Raffle description and price
+- Grid of numbered spot buttons
+
+#### Step 2: Claim a Spot
+
+1. Find an available spot (blue button with arrow)
+2. Click the spot number you want
+3. Confirm in the popup dialog
+4. Your name appears on the button
+
+```
+Before: [ -> 5 ]      (blue, available)
+After:  [ @YourName ] (gray, claimed)
+```
+
+#### Step 3: Pay for Your Spots
+
+When all spots are claimed:
+1. A payment button appears in the thread
+2. Click "Pay for Your Spots"
+3. View payment details (Venmo, PayPal, etc.)
+4. Send payment to the admin
+5. Click "Mark as Paid"
+
+Your button changes to show pending status:
+```
+[ checkmark @YourName ] (gray with checkmark, waiting admin confirmation)
+```
+
+#### Step 4: Wait for Confirmation
+
+The admin will verify your payment and confirm it. Your button turns green:
+```
+[ @YourName checkmark ] (green, payment confirmed)
+```
+
+### Button States Reference
+
+| Appearance | Meaning |
+|------------|---------|
+| Blue with arrow | Available - click to claim |
+| Gray with @name | Claimed, payment pending |
+| Gray with checkmark @name | User marked as paid (waiting admin) |
+| Green with @name checkmark | Admin confirmed payment |
+
+### Check Your Spots
+
+**Command:** `/my_spots`
+
+Shows all spots you've claimed across all raffles with payment status.
 
 ---
 
-## 🚀 For Administrators: Managing Raffles
+## For Administrators
 
-As an admin, you have access to a suite of slash commands to create and manage raffles.
+### Creating a Raffle
 
-### 1. Creating a Raffle
+**Command:** `/setup_raffle`
 
-The first step is to create a new raffle.
+Opens a form with these fields:
 
-*   **Command:** `/setup_raffle`
-*   **Action:** This opens a form (a Discord Modal) where you can enter the raffle details.
+| Field | Required | Description |
+|-------|----------|-------------|
+| Title | Yes | Name of the raffle |
+| Price | Yes | Cost per spot (numbers only) |
+| Total Spots | Yes | Number of available spots |
+| Description | Yes | Details about the item |
+| Photo URL | No | Image URL for the embed |
+| Grading Link | No | CGC/PSA verification link |
+| Duration | No | Days until auto-close (default: 7) |
+| International Shipping | No | Shipping terms |
+| Payment Details | No | How to pay (Venmo, PayPal, etc.) |
 
-#### Raffle Details:
-*   **Title:** The name of your raffle (e.g., "Spawn #1").
-*   **Price:** The cost for a single spot.
-*   **Total Spots:** The total number of spots available.
-*   **Photo URL:** A link to an image that will be displayed in the raffle embed.
-*   **Description:** A detailed description of the item being raffled.
-*   **Grading Link:** (Optional) A link to CGC/PSA etc or additional details.
-*   **Duration:** The number of days the raffle will run before automatically closing (defaults to 7).
-*   **International Shipping:** Information about international shipping (e.g., "Yes, buyer pays shipping" or "No").
+**What Happens:**
+1. A forum thread is created in `#raffles-v2`
+2. An admin thread is created in `#raffle-admin`
+3. Spot buttons appear for users to claim
 
-Once submitted, the bot will post a beautiful embed in the channel, pin it, and add a **[ 🎟️ Claim Spots ]** button for users to join.
+### Admin Thread
 
-### 2. Tracking Payments
+Each raffle gets a dedicated admin thread showing:
 
-Keep track of who has paid for their spots.
+- Raffle status (Active/Closed)
+- Claim statistics (total, paid, pending)
+- Payment details
+- Admin action buttons
 
-*   **Command:** `/mark_paid`
-*   **Action:**
-    1.  A dropdown will appear, listing all active raffles.
-    2.  Select the raffle you want to update.
-    3.  A new multi-select dropdown will appear, showing only the users who have **unpaid** claims.
-    4.  Select the users who have paid and confirm.
-*   **Result:** The raffle embed will update, adding a `✅` next to the names of paid users.
+**Admin Actions:**
 
-### 3. Ending a Raffle
+| Button | Action |
+|--------|--------|
+| Mark Paid | Mark users' spots as paid |
+| Extend Duration | Add 7 days to raffle |
+| Close Raffle | End the raffle early |
+| Pick Winner | Randomly select winner (closed raffles only) |
 
-You can end a raffle manually at any time.
+### Payment Verification Flow
 
-*   **Command:** `/end_raffle`
-*   **Action:** Select an active raffle from the dropdown menu.
-*   **Result:** The raffle will be marked as **[CLOSED]**, and the "Claim Spots" button will be disabled.
+When a user marks their spots as paid:
 
-### 4. Extending a Raffle
+1. **Notification appears** in the raffle's admin thread
+2. Shows user, spots claimed, and total amount
+3. **Verify payment** in your payment app
+4. Click **"Confirm Payment"** or **"Reject"**
 
-Need more time? You can extend a raffle's duration.
+Confirming payment:
+- Updates spot buttons to green
+- User receives confirmation
 
-*   **Command:** `/extend_raffle`
-*   **Action:** Select an active raffle from the dropdown menu.
-*   **Result:** The raffle's duration will be extended by 7 days.
+Rejecting payment:
+- Resets user's paid status
+- User can try again
 
-### 5. Picking a Winner
+### Managing Payments (Legacy Command)
 
-Once a raffle is closed and all payments are collected, it's time to pick a winner!
+**Command:** `/mark_paid`
 
-*   **Command:** `/pick_winner`
-*   **Action:**
-    1.  Select a **closed** raffle from the dropdown menu.
-    2.  The bot will randomly select a winner, with each spot counting as one entry.
-    3.  The potential winner is posted **privately** to the admin channel for review.
-    4.  You can then **[ ✅ Confirm & Announce ]** or **[ 🔄 Re-Roll ]**.
-*   **Result:**
-    *   **On confirmation:** The winner is announced in the main channel, and the raffle embed is updated with a `🏆 WINNER` field.
+1. Select a raffle from dropdown
+2. Select users who have paid
+3. Confirm selection
 
-### 6. Daily Reporting
+This is an alternative to the button-based confirmation.
 
-The bot will automatically post a summary of new claims from the last 24 hours to the admin channel every day.
+### Ending Raffles
+
+**Command:** `/end_raffle`
+
+Select an active raffle to close it. This:
+- Disables all claim buttons
+- Marks raffle as closed
+- Enables "Pick Winner" button
+
+### Extending Raffles
+
+**Command:** `/extend_raffle`
+
+Adds 7 days to the selected raffle's duration.
+
+### Picking Winners
+
+**Command:** `/pick_winner`
+
+1. Select a **closed** raffle
+2. Bot randomly selects a winner (each spot = one entry)
+3. Preview shown privately in admin thread
+4. Click **"Confirm & Announce"** or **"Re-Roll"**
+
+On confirmation:
+- Winner announced in raffle thread
+- Raffle embed updated with winner
+
+### Daily Reporting
+
+The bot automatically posts a summary of new claims from the last 24 hours to the admin channel every day.
 
 ---
 
-## 🙋 For Users: Participating in Raffles
+## Visual Reference
 
-### 1. Claiming Your Spots
+### Raffle Embed
 
-Joining a raffle is simple.
+```
++----------------------------------+
+|  Raffle Time!                    |
++----------------------------------+
+|  [Image if provided]             |
+|                                  |
+|  Title: Amazing Item             |
+|  Price: $10                      |
+|  Total Spots: 25                 |
+|  Spots Claimed: 15               |
+|  Spots Remaining: 10             |
+|  Participants: @User1, @User2... |
++----------------------------------+
+```
 
-*   **Action:** Click the **[ 🎟️ Claim Spots ]** button on any active raffle.
-*   **Interaction:**
-    1.  The bot will send you a **private message** (ephemeral) with one or more dropdown menus.
-    2.  If there are more than 25 spots available, you'll see multiple dropdowns (e.g., "Spots 1-25", "Spots 26-50").
-    3.  Select the spots you want to claim.
-*   **Result:** The raffle embed will instantly update to show your name next to your claimed spots.
+### Spot Button Grid
 
-### 2. Checking Your Spots
+```
+Spots 1-25:
+[ -> 1 ] [ -> 2 ] [ @Kim ] [ -> 4 ] [ -> 5 ]
+[ @Joe ] [ -> 7 ] [ -> 8 ] [ @Amy ] [ -> 10 ]
+[ -> 11] [@Sam v] [ -> 13] [ -> 14] [ -> 15]
+[ -> 16] [ -> 17] [ -> 18] [ -> 19] [ -> 20]
+[ -> 21] [ -> 22] [ -> 23] [ -> 24] [ -> 25]
 
-You can view all the spots you've claimed across all raffles.
+Legend:
+[ -> # ]   = Available (blue)
+[ @Name ]  = Claimed, unpaid (gray)
+[ @Name v] = Admin confirmed paid (green)
+```
 
-*   **Command:** `/my_spots`
-*   **Result:** The bot will send you a private message listing all your claimed spots and their payment status.
+### Large Raffles (>25 spots)
+
+For raffles with more than 25 spots:
+- First message shows spots 1-25
+- Reply messages show spots 26-50, 51-75, etc.
+
+### Admin Thread View
+
+```
++----------------------------------+
+|  Raffle: Amazing Item            |
++----------------------------------+
+|  Status: Active                  |
+|  Price: $10 per spot             |
+|  Total Spots: 25                 |
+|  Claimed: 15/25                  |
+|  Paid: 8                         |
+|  Pending Payment: 7              |
++----------------------------------+
+| [Mark Paid] [Extend] [Close]     |
++----------------------------------+
+```
 
 ---
 
-## 🎨 Visual Guide
+## FAQ
 
-The raffle embed provides a clear, at-a-glance view of the raffle's status.
+### For Users
 
-*   **Color:**
-    *   **Green (`0x57F287`):** The raffle is active and open for claims.
-    *   **Red (`0xED4245`):** The raffle is closed.
-*   **Spot Status:**
-    *   `1. [OPEN]` - The spot is available.
-    *   `1. @Username` - The spot is claimed but not yet paid for.
-    *   `1. @Username ✅` - The spot is claimed and paid for.
-    *   `🏆 WINNER: @Username` - The winner of the raffle.
+**Q: Can I claim multiple spots?**
+A: Yes! Click each spot you want individually and confirm each one.
+
+**Q: Can I unclaim a spot?**
+A: No. Contact an admin if you need to release a spot.
+
+**Q: What if I marked as paid but admin rejected it?**
+A: Check your payment went through, then mark as paid again.
+
+**Q: How is the winner chosen?**
+A: Random selection where each spot = one entry. More spots = better odds.
+
+### For Admins
+
+**Q: Can I change raffle settings after creation?**
+A: You can extend duration. Other changes require creating a new raffle.
+
+**Q: What if someone claims without paying?**
+A: Track unpaid claims in the admin thread. You can close the raffle and pick winner from paid spots.
+
+**Q: Can I have multiple raffles at once?**
+A: Yes! Each raffle is independent with its own thread.
+
+**Q: What permissions does the bot need?**
+A: Send Messages, Use Slash Commands, Manage Threads, Embed Links in both forum channels.
+
+---
+
+## Related Documentation
+
+- [Technical Requirements](../specs/technical_requirements.md) - Implementation details
+- [Product Requirements](../specs/product_requirements.md) - Feature specifications
+- [Migration Plan](PLAN.md) - UI migration details
+
+---
+
+*Last Updated: December 2025*

@@ -7,7 +7,6 @@ defmodule RaffleBot.Discord.Components.AdminThread do
   """
 
   alias RaffleBot.Raffles.Raffle
-  alias RaffleBot.Claims.Claim
 
   @doc """
   Builds the admin embed for a raffle.

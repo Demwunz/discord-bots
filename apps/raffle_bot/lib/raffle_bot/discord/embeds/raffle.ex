@@ -76,15 +76,12 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
     end)
   end
 
-  @doc """
-  Builds a single spot button based on its claim status.
-
-  ## Button States
-    - Available: Blue primary button with ➡️ and spot number
-    - Claimed (unpaid): Gray secondary button with @username, disabled
-    - User marked as paid (pending admin confirmation): Gray with ✅ @username
-    - Admin confirmed paid: Green success button with ✅ @username, disabled
-  """
+  # Builds a single spot button based on its claim status.
+  # Button States:
+  #   - Available: Blue primary button with ➡️ and spot number
+  #   - Claimed (unpaid): Gray secondary button with @username, disabled
+  #   - User marked as paid (pending admin confirmation): Gray with ✅ @username
+  #   - Admin confirmed paid: Green success button with ✅ @username, disabled
   defp build_spot_button(raffle, claims, spot_number) do
     case find_claim(claims, spot_number) do
       nil ->
@@ -128,25 +125,19 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
     end
   end
 
-  @doc """
-  Finds a claim for a specific spot number.
-  """
+  # Finds a claim for a specific spot number.
   defp find_claim(claims, spot_number) do
     Enum.find(claims, fn claim -> claim.spot_number == spot_number end)
   end
 
-  @doc """
-  Formats a user ID as a Discord mention.
-  Falls back to @user_id format for display.
-  """
+  # Formats a user ID as a Discord mention.
+  # Falls back to @user_id format for display.
   defp format_username(user_id) do
     "@#{user_id}"
   end
 
-  @doc """
-  Truncates a username to fit within Discord's button label limit.
-  Discord button labels have a max length of 80 characters.
-  """
+  # Truncates a username to fit within Discord's button label limit.
+  # Discord button labels have a max length of 80 characters.
   defp truncate_username(username, max_length) do
     if String.length(username) > max_length do
       String.slice(username, 0, max_length - 3) <> "..."

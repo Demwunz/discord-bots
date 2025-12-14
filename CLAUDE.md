@@ -22,11 +22,12 @@
 - **[Gemini-Specific Instructions](docs/agents/GEMINI.md)** - Gemini model guidance
 
 ### App-Specific Documentation
-Each bot application has its own documentation in `apps/{app_name}/` and `specs/{app_name}/`:
+Each bot application is self-contained in `apps/{app_name}/` with its own docs and specs:
 - **Raffle Bot:**
   - [App Guide](apps/raffle_bot/docs/GUIDE.md) - User guide and features
-  - [Product Requirements](specs/raffle_bot/product_requirements.md) - Feature specifications
-  - [Technical Requirements](specs/raffle_bot/technical_requirements.md) - Implementation details
+  - [Product Requirements](apps/raffle_bot/specs/product_requirements.md) - Feature specifications
+  - [Technical Requirements](apps/raffle_bot/specs/technical_requirements.md) - Implementation details
+  - [Migration Plan](apps/raffle_bot/docs/PLAN.md) - UI migration plan
 
 ### Recent Updates (Dec 2025)
 - ✅ **Multi-app Docker support**: Dockerfile now parameterized with `APP_NAME` build arg
@@ -46,10 +47,12 @@ This is an **Elixir Umbrella** project designed to host multiple independent Dis
 discord-bots/
 ├── apps/              # Individual bot applications
 │   ├── raffle_bot/   # Raffle management bot (Phoenix app)
+│   │   ├── docs/     # App-specific guides
+│   │   ├── specs/    # Product & technical requirements
+│   │   └── lib/      # Application code
 │   └── [future_bot]/ # Future bots go here
 ├── config/           # Shared configuration (umbrella-level)
-├── docs/             # Centralized documentation
-├── specs/            # Per-app specifications
+├── docs/             # Shared documentation (agents, operations)
 ├── Dockerfile        # Parameterized for all apps (APP_NAME build arg)
 ├── docker-compose.yml # Multi-service local development
 └── fly.toml          # Raffle bot deployment config
@@ -222,8 +225,8 @@ bot_name:
 Create documentation following the structure:
 * `apps/bot_name/README.md` - Overview
 * `apps/bot_name/docs/GUIDE.md` - User guide
-* `specs/bot_name/product_requirements.md` - Features
-* `specs/bot_name/technical_requirements.md` - Implementation
+* `apps/bot_name/specs/product_requirements.md` - Features
+* `apps/bot_name/specs/technical_requirements.md` - Implementation
 
 ---
 
@@ -232,8 +235,8 @@ Create documentation following the structure:
 ### 4.1 Raffle Bot
 See app-specific documentation:
 * **[User Guide](apps/raffle_bot/docs/GUIDE.md)** - Features and usage
-* **[Product Requirements](specs/raffle_bot/product_requirements.md)** - Feature specs
-* **[Technical Requirements](specs/raffle_bot/technical_requirements.md)** - Implementation details
+* **[Product Requirements](apps/raffle_bot/specs/product_requirements.md)** - Feature specs
+* **[Technical Requirements](apps/raffle_bot/specs/technical_requirements.md)** - Implementation details
 
 Key patterns in raffle_bot:
 * Slash commands for setup

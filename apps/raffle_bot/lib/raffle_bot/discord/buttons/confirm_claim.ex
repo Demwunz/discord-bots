@@ -8,7 +8,6 @@ defmodule RaffleBot.Discord.Buttons.ConfirmClaim do
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Raffles
   alias RaffleBot.Claims
-  alias RaffleBot.Discord.Embeds.Raffle, as: RaffleEmbed
   alias RaffleBot.Discord.Helpers.ButtonRefresher
 
   def handle(%Interaction{data: %{"custom_id" => "confirm_claim_" <> rest}} = interaction) do

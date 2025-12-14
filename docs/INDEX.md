@@ -24,9 +24,10 @@ Welcome to the Discord Bots Umbrella documentation!
 - [Raffle Bot Guide](../apps/raffle_bot/docs/GUIDE.md) - Detailed usage guide
 
 ### Product Specifications
-- [Raffle Bot - Product Requirements](../specs/raffle_bot/product_requirements.md)
-- [Raffle Bot - Technical Requirements](../specs/raffle_bot/technical_requirements.md)
-- [Raffle Bot - Testing Guide](../specs/raffle_bot/TESTS.md)
+- [Raffle Bot - Product Requirements](../apps/raffle_bot/specs/product_requirements.md)
+- [Raffle Bot - Technical Requirements](../apps/raffle_bot/specs/technical_requirements.md)
+- [Raffle Bot - Testing Guide](../apps/raffle_bot/specs/TESTS.md)
+- [Raffle Bot - Migration Plan](../apps/raffle_bot/docs/PLAN.md)
 
 ---
 
@@ -38,9 +39,10 @@ This is an **Elixir Umbrella Project** designed to host multiple Discord bots:
 discord-bots/
 ├── apps/              # Individual bot applications
 │   └── raffle_bot/   # First bot (raffle management)
+│       ├── docs/     # App-specific guides
+│       └── specs/    # Product & technical requirements
 ├── config/           # Shared configuration
-├── docs/             # Centralized documentation
-├── specs/            # Product & technical specifications
+├── docs/             # Shared documentation (agents, operations)
 └── ...
 ```
 
@@ -69,7 +71,7 @@ When adding new documentation:
 
 - **General docs**: Add to `/docs/` with appropriate subdirectory
 - **App-specific**: Add to `/apps/{app_name}/docs/`
-- **Specs**: Add to `/specs/{app_name}/`
+- **App specs**: Add to `/apps/{app_name}/specs/`
 - **AI instructions**: Update `/CLAUDE.md` and `/docs/agents/`
 
 Keep docs:

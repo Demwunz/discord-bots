@@ -130,9 +130,8 @@ defmodule RaffleBot.Discord.Modals.RaffleSetup do
 
           {:ok, unexpected} ->
             # Handle unexpected successful response structure
-            RaffleBot.Discord.ApiConsumer.Logger.error(
-              "Unexpected forum thread response: #{inspect(unexpected)}"
-            )
+            require Logger
+            Logger.error("Unexpected forum thread response: #{inspect(unexpected)}")
 
             discord_api().create_interaction_response(
               interaction,
