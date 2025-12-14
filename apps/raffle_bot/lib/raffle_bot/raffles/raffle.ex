@@ -11,6 +11,7 @@ defmodule RaffleBot.Raffles.Raffle do
   @foreign_key_type :binary_id
   schema "raffles" do
     field :message_id, :integer
+    field :spot_button_message_ids, {:array, :string}, default: []
     field :channel_id, :integer
     field :title, :string
     field :price, :decimal
@@ -23,6 +24,9 @@ defmodule RaffleBot.Raffles.Raffle do
     field :active, :boolean, default: true
     field :closed_at, :utc_datetime
     field :auto_close_at, :utc_datetime
+    field :payment_details, :string
+    field :admin_thread_id, :string
+    field :admin_thread_message_id, :string
 
     has_many :claims, Claim
 
@@ -34,6 +38,7 @@ defmodule RaffleBot.Raffles.Raffle do
     raffle
     |> cast(attrs, [
       :message_id,
+      :spot_button_message_ids,
       :channel_id,
       :title,
       :price,
@@ -45,7 +50,10 @@ defmodule RaffleBot.Raffles.Raffle do
       :international_shipping,
       :active,
       :closed_at,
-      :auto_close_at
+      :auto_close_at,
+      :payment_details,
+      :admin_thread_id,
+      :admin_thread_message_id
     ])
     |> validate_required([
       :channel_id,

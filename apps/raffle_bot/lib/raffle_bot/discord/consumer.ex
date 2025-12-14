@@ -19,6 +19,9 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Selects.MarkPaidRaffle
   alias RaffleBot.Discord.Selects.MarkPaidUser
   alias RaffleBot.Discord.Buttons.ClaimSpots
+  alias RaffleBot.Discord.Buttons.ClaimSpotButton
+  alias RaffleBot.Discord.Buttons.ConfirmClaim
+  alias RaffleBot.Discord.Buttons.CancelClaim
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
   alias RaffleBot.Discord.Authorization
@@ -82,6 +85,17 @@ defmodule RaffleBot.Discord.Consumer do
     task =
       Task.async(fn ->
         case data do
+          # New per-spot button handlers
+          %{"custom_id" => "claim_spot_" <> _rest} ->
+            ClaimSpotButton.handle(interaction)
+
+          %{"custom_id" => "confirm_claim_" <> _rest} ->
+            ConfirmClaim.handle(interaction)
+
+          %{"custom_id" => "cancel_claim"} ->
+            CancelClaim.handle(interaction)
+
+          # Existing handlers (backwards compatibility)
           %{"custom_id" => "claim_spots"} ->
             ClaimSpots.handle(interaction)
 

@@ -34,4 +34,16 @@ defmodule RaffleBot.Discord.MockApi do
   def get_user(_user_id) do
     {:ok, %{}}
   end
+
+  @impl true
+  def start_forum_thread(_channel_id, thread_name, _message_params) do
+    {:ok,
+     %{
+       "id" => "mock_thread_id_#{:rand.uniform(1_000_000)}",
+       "name" => thread_name,
+       "message" => %{
+         "id" => "mock_message_id_#{:rand.uniform(1_000_000)}"
+       }
+     }}
+  end
 end

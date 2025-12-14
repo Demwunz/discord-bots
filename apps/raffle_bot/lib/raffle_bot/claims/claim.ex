@@ -13,6 +13,8 @@ defmodule RaffleBot.Claims.Claim do
     field :user_id, :integer
     field :spot_number, :integer
     field :is_paid, :boolean, default: false
+    field :user_marked_paid, :boolean, default: false
+    field :user_marked_paid_at, :utc_datetime
 
     belongs_to :raffle, Raffle
 
@@ -22,7 +24,7 @@ defmodule RaffleBot.Claims.Claim do
   @doc false
   def changeset(claim, attrs) do
     claim
-    |> cast(attrs, [:user_id, :spot_number, :is_paid, :raffle_id])
+    |> cast(attrs, [:user_id, :spot_number, :is_paid, :user_marked_paid, :user_marked_paid_at, :raffle_id])
     |> validate_required([:user_id, :spot_number, :is_paid, :raffle_id])
   end
 end

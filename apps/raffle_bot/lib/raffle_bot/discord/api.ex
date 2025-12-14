@@ -23,4 +23,9 @@ defmodule RaffleBot.Discord.Api do
             ) :: :ok
   @callback edit_interaction_response(interaction :: any(), data :: map()) :: :ok
   @callback get_user(user_id :: integer()) :: {:ok, any()} | {:error, any()}
+  @callback start_forum_thread(
+              channel_id :: integer() | String.t(),
+              thread_name :: String.t(),
+              message_params :: map()
+            ) :: {:ok, any()} | {:error, any()}
 end
