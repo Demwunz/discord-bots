@@ -35,4 +35,17 @@ defmodule RaffleBot.Discord.NostrumApi do
   def get_user(user_id) do
     Api.User.get(user_id)
   end
+
+  @impl true
+  def start_forum_thread(channel_id, thread_name, message_params) do
+    # For forum channels, starting a thread creates a post with an initial message
+    # Discord API: POST /channels/{channel_id}/threads
+    body = %{
+      name: thread_name,
+      type: 11, # GUILD_PUBLIC_THREAD
+      message: message_params
+    }
+
+    Nostrum.Api.request(:post, "/channels/#{channel_id}/threads", body)
+  end
 end
