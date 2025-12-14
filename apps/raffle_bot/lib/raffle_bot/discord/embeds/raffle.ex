@@ -137,7 +137,7 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
 
   @doc """
   Formats a user ID as a Discord mention.
-  Falls back to "@#{user_id}" for display.
+  Falls back to @user_id format for display.
   """
   defp format_username(user_id) do
     "@#{user_id}"
