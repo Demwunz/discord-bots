@@ -30,6 +30,13 @@ defmodule RaffleBot.Raffles.Raffle do
     field :admin_thread_id, :string
     field :admin_thread_message_id, :string
 
+    # Winner fields
+    field :winner_user_id, :string
+    field :winner_announced_at, :utc_datetime
+    field :winner_spot_number, :integer
+    field :shipping_details, :map
+    field :shipping_submitted_at, :utc_datetime
+
     has_many :claims, Claim
 
     timestamps()
@@ -57,7 +64,12 @@ defmodule RaffleBot.Raffles.Raffle do
       :auto_close_at,
       :payment_details,
       :admin_thread_id,
-      :admin_thread_message_id
+      :admin_thread_message_id,
+      :winner_user_id,
+      :winner_announced_at,
+      :winner_spot_number,
+      :shipping_details,
+      :shipping_submitted_at
     ])
     |> validate_required([
       :channel_id,

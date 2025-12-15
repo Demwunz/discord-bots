@@ -32,6 +32,8 @@ The Raffle Bot automates the entire raffle process within Discord:
 | Per-Spot Buttons | Click directly on the spot you want |
 | Real-Time Updates | All users see changes instantly |
 | Payment Tracking | Visual indicators for paid/unpaid status |
+| Winner Selection | Weighted random with re-roll audit trail |
+| Shipping Collection | Winner submits details directly to admin |
 | Admin Controls | Dedicated admin thread per raffle |
 | Forum Organization | Each raffle gets its own thread |
 
@@ -103,4 +105,4 @@ The Raffle Bot automates the entire raffle process within Discord:
 
 ---
 
-*Last Updated: December 2025 (v2.1 - Control Panel)*
+*Last Updated: December 2025 (v2.2 - Winner Selection & Shipping)*

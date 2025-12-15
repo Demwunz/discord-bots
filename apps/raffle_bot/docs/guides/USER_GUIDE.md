@@ -70,6 +70,46 @@ The admin will verify your payment and confirm it. All your spot buttons turn gr
 
 ---
 
+## If You Win!
+
+When the raffle closes and a winner is selected:
+
+### Winner Announcement
+
+The bot will post an announcement in the raffle thread:
+
+```
+🎉 We Have a Winner!
+
+Congratulations @YourName! 🏆
+
+You won with spot #7!
+(3 total entries)
+
+[📦 Submit Shipping Details]
+```
+
+### Submit Your Shipping Details
+
+1. Click **"📦 Submit Shipping Details"** (only works for you, the winner)
+2. Fill out the form:
+   - Full Name
+   - Street Address
+   - City, State, ZIP
+   - Country
+   - Phone Number (optional)
+3. Submit - the admin will receive your details and ship your prize!
+
+You'll see a confirmation:
+```
+✅ Shipping details submitted!
+
+The raffle admin has been notified and will
+ship your prize soon. Congratulations again! 🎉
+```
+
+---
+
 ## FAQ
 
 **Q: Can I claim multiple spots?**

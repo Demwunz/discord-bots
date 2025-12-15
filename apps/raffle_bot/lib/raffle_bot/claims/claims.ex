@@ -64,4 +64,27 @@ defmodule RaffleBot.Claims do
     )
     |> Repo.all()
   end
+
+  @doc """
+  Gets all paid claims for a raffle (is_paid = true).
+  Used for winner selection - each paid claim is one entry.
+  """
+  def get_paid_claims_for_raffle(raffle_id) do
+    from(c in Claim,
+      where: c.raffle_id == ^raffle_id and c.is_paid == true,
+      order_by: [asc: c.spot_number]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Counts paid claims for a raffle.
+  """
+  def count_paid_claims(raffle_id) do
+    from(c in Claim,
+      where: c.raffle_id == ^raffle_id and c.is_paid == true,
+      select: count(c.id)
+    )
+    |> Repo.one()
+  end
 end

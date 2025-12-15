@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 **Project Name:** Discord Raffle Bot (Elixir/Phoenix)
 **App Location:** `apps/raffle_bot`
-**Version:** 2.1 (Control Panel)
+**Version:** 2.2 (Winner Selection & Shipping)
 
 ## 1. Executive Summary
 The Discord Raffle Bot is a persistent, fault-tolerant application designed to automate the management of paid community raffles. It replaces manual spreadsheet tracking with a real-time, database-backed system that handles spot claiming, payment verification, and transparent winner selection.
 
 **Version 2.1 adds the Admin Control Panel** - a pinned forum post in the admin channel that provides a centralized, discoverable interface for creating and managing raffles without needing to remember slash commands.
+
+**Version 2.2 adds Complete Winner Selection** - transparent winner picking with weighted random selection, re-roll audit trail with required reasons, winner announcement with shipping details collection, and full admin thread logging for accountability.
 
 ## 2. Functional Requirements
 
@@ -120,16 +122,217 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
     1.  Update database: Set `is_paid = true`.
     2.  Update spot buttons: Turn green ✅ @username.
 
-### 2.6 Winner Selection (`/pick_winner`)
-* **Trigger:** Admin Slash Command.
-* **Interaction Flow:**
-    1.  Admin selects a **Closed** raffle.
-    2.  Bot calculates a **Weighted Random Winner** (1 spot = 1 entry ticket).
-    3.  **Review Phase:** Bot posts the potential winner **only** to the Admin Channel/Thread.
-        * Controls: `[ ✅ Confirm & Announce ]` and `[ 🔄 Re-Roll ]`.
-* **Confirmation Action:**
-    1.  Edit raffle message: Add a `🏆 WINNER: @Username` field.
-    2.  Post Announcement: Send a congratulatory message to the raffle thread.
+### 2.6 Winner Selection (Updated in v2.2)
+
+**Version 2.2 Update:** Complete winner workflow with re-roll transparency, shipping collection, and audit trail.
+
+#### 2.6.1 Initiating Winner Selection
+
+* **Triggers:**
+    * Admin Slash Command: `/pick_winner`
+    * Admin Thread Button: "🏆 Pick Winner" (shown when raffle is closed)
+
+* **Preconditions:**
+    * Raffle must be **closed** (`active: false`)
+    * At least one **paid** claim exists
+
+#### 2.6.2 Winner Selection Logic
+
+* **Algorithm:** Weighted Random Selection
+    * Each paid spot = 1 entry ticket
+    * User with 3 paid spots has 3× chance of winning
+    * Only `is_paid = true` claims are eligible
+* **Database Query:**
+    ```
+    SELECT user_id, spot_number FROM claims
+    WHERE raffle_id = ? AND is_paid = true
+    ```
+* **Selection:** Random pick from the pool of paid spot entries
+
+#### 2.6.3 Winner Preview (Admin Thread Only)
+
+Bot posts preview message to the raffle's **admin thread**:
+
+```
+┌─────────────────────────────────────────┐
+│ 🎲 Winner Preview                       │
+│                                         │
+│ 🏆 @username                            │
+│ Spots: #3, #7, #12 (3 entries)          │
+│ Winning Entry: Spot #7                  │
+│                                         │
+│ [✅ Confirm & Announce] [🔄 Re-Roll]    │
+└─────────────────────────────────────────┘
+```
+
+**Components:**
+| Button | Style | Custom ID |
+|--------|-------|-----------|
+| ✅ Confirm & Announce | Green (Success) | `confirm_winner_{raffle_id}_{user_id}` |
+| 🔄 Re-Roll | Gray (Secondary) | `reroll_winner_{raffle_id}` |
+
+#### 2.6.4 Re-Roll Flow (Transparency & Audit)
+
+When admin clicks **"🔄 Re-Roll"**:
+
+1. **Modal Prompt:** Bot shows modal requesting reason
+    ```
+    ┌─────────────────────────────────────┐
+    │ Re-Roll Reason                      │
+    │                                     │
+    │ Why are you re-rolling this winner? │
+    │ ┌─────────────────────────────────┐ │
+    │ │                                 │ │
+    │ │ (Required - for transparency)   │ │
+    │ └─────────────────────────────────┘ │
+    │                                     │
+    │              [Submit]               │
+    └─────────────────────────────────────┘
+    ```
+
+2. **Audit Log:** Bot posts to admin thread:
+    ```
+    ⚠️ Re-Roll Record
+
+    Previous Winner: @username (Spots #3, #7, #12)
+    Re-rolled by: @admin
+    Reason: [admin's reason]
+    Timestamp: 2025-12-15 10:30 UTC
+    ```
+
+3. **New Selection:** Bot picks new winner and shows new preview
+    * Previous winner remains in the eligible pool (unless manually excluded)
+
+#### 2.6.5 Confirm & Announce Flow
+
+When admin clicks **"✅ Confirm & Announce"**:
+
+1. **Database Update:**
+    * Set `winner_user_id` on raffle record
+    * Set `winner_announced_at` timestamp
+
+2. **User Thread Announcement:**
+    Bot posts to the **user raffle thread**:
+    ```
+    ┌─────────────────────────────────────────┐
+    │ 🎉 We Have a Winner!                    │
+    │                                         │
+    │ Congratulations @username! 🏆           │
+    │                                         │
+    │ You won with spot #7!                   │
+    │ (3 total entries)                       │
+    │                                         │
+    │ [📦 Submit Shipping Details]            │
+    └─────────────────────────────────────────┘
+    ```
+
+    **Important:** The "📦 Submit Shipping Details" button is **only visible to the winner** (ephemeral-style visibility not possible for persistent messages, so button validates user on click).
+
+3. **Raffle Embed Update:**
+    * Add field: `🏆 Winner: @username`
+    * Change embed color to Gold (`0xFFD700`)
+
+4. **Admin Thread Confirmation:**
+    ```
+    ✅ Winner Confirmed & Announced
+
+    Winner: @username
+    Winning Spot: #7
+    Announced at: 2025-12-15 10:35 UTC
+
+    Awaiting shipping details from winner...
+    ```
+
+#### 2.6.6 Winner Shipping Details Collection
+
+When winner clicks **"📦 Submit Shipping Details"**:
+
+1. **User Validation:** Bot checks if clicker is the winner
+    * If not winner: Ephemeral message "This button is only for the winner."
+
+2. **Shipping Modal:**
+    ```
+    ┌─────────────────────────────────────────┐
+    │ 📦 Shipping Details                     │
+    │                                         │
+    │ Full Name *                             │
+    │ ┌─────────────────────────────────────┐ │
+    │ │                                     │ │
+    │ └─────────────────────────────────────┘ │
+    │                                         │
+    │ Street Address *                        │
+    │ ┌─────────────────────────────────────┐ │
+    │ │                                     │ │
+    │ └─────────────────────────────────────┘ │
+    │                                         │
+    │ City, State, ZIP *                      │
+    │ ┌─────────────────────────────────────┐ │
+    │ │                                     │ │
+    │ └─────────────────────────────────────┘ │
+    │                                         │
+    │ Country *                               │
+    │ ┌─────────────────────────────────────┐ │
+    │ │                                     │ │
+    │ └─────────────────────────────────────┘ │
+    │                                         │
+    │ Phone Number                            │
+    │ ┌─────────────────────────────────────┐ │
+    │ │ (Optional - for delivery updates)   │ │
+    │ └─────────────────────────────────────┘ │
+    │                                         │
+    │              [Submit]                   │
+    └─────────────────────────────────────────┘
+    ```
+
+3. **Admin Thread Notification:**
+    ```
+    📦 Shipping Details Received
+
+    Winner: @username
+
+    Name: John Doe
+    Address: 123 Main Street
+             Apt 4B
+    City/State/ZIP: New York, NY 10001
+    Country: United States
+    Phone: +1 (555) 123-4567
+
+    ✅ Ready to ship!
+    ```
+
+4. **Winner Confirmation:**
+    Ephemeral message to winner:
+    ```
+    ✅ Shipping details submitted!
+
+    The raffle admin has been notified and will
+    ship your prize soon. Congratulations again!
+    ```
+
+5. **Button Update:**
+    * Original announcement button changes to disabled: "✅ Shipping Details Submitted"
+
+#### 2.6.7 Data Storage
+
+**Raffle Schema Updates:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `winner_user_id` | string | Discord user ID of winner |
+| `winner_announced_at` | utc_datetime | When winner was announced |
+| `winner_spot_number` | integer | The specific spot that won |
+| `shipping_details` | map | Winner's shipping information (JSON) |
+| `shipping_submitted_at` | utc_datetime | When shipping was submitted |
+
+**Re-Roll Audit (New Table: `winner_rerolls`):**
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | binary_id | Primary key |
+| `raffle_id` | binary_id | FK to raffles |
+| `previous_winner_id` | string | User ID who was re-rolled |
+| `previous_winner_spots` | array | Spot numbers they had |
+| `rerolled_by_id` | string | Admin who re-rolled |
+| `reason` | string | Reason for re-roll |
+| `rerolled_at` | utc_datetime | Timestamp |
 
 ### 2.7 Administration
 * **Manual Close (`/end_raffle`):**

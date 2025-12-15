@@ -12,6 +12,7 @@ How to manage raffles as a Discord server administrator.
 - [Admin Thread](#admin-thread)
 - [Payment Verification](#payment-verification)
 - [Managing Raffles](#managing-raffles)
+- [Picking Winners](#picking-winners)
 - [FAQ](#faq)
 
 ---
@@ -161,22 +162,93 @@ Select an active raffle to close it. This:
 
 Adds 7 days to the selected raffle's duration.
 
-### Picking Winners
-
-**Command:** `/pick_winner`
-
-1. Select a **closed** raffle
-2. Bot randomly selects a winner (each spot = one entry)
-3. Preview shown privately in admin thread
-4. Click **"Confirm & Announce"** or **"Re-Roll"**
-
-On confirmation:
-- Winner announced in raffle thread
-- Raffle embed updated with winner
-
 ### Daily Reporting
 
 The bot automatically posts a summary of new claims from the last 24 hours to the admin channel every day.
+
+---
+
+## Picking Winners
+
+Once a raffle is closed and payments are confirmed, you can pick a winner.
+
+### Starting Winner Selection
+
+**Option 1:** Click **"🏆 Pick Winner"** button in the admin thread (appears when raffle is closed)
+
+**Option 2:** Use `/pick_winner` command and select the raffle
+
+### How Winners Are Selected
+
+- **Weighted random selection** - each paid spot = 1 entry
+- A user with 3 spots has 3× the chance of winning
+- Only **paid** claims are eligible
+
+### Winner Preview
+
+The bot posts a preview to the admin thread:
+
+```
+🎲 Winner Preview
+
+🏆 @username
+Spots: #3, #7, #12 (3 entries)
+Winning Entry: Spot #7
+Total Entries in Pool: 25
+
+[✅ Confirm & Announce] [🔄 Re-Roll]
+```
+
+### Confirming the Winner
+
+Click **"✅ Confirm & Announce"** to:
+
+1. Announce winner in the user raffle thread
+2. Show "📦 Submit Shipping Details" button to winner
+3. Log confirmation in admin thread
+
+### Re-Rolling (With Audit Trail)
+
+If you need to pick a different winner:
+
+1. Click **"🔄 Re-Roll"**
+2. Enter a **reason** (required for transparency)
+3. The re-roll is logged in admin thread:
+   ```
+   ⚠️ Re-Roll Record
+
+   Previous Winner: @username (Spots #3, #7, #12)
+   Re-rolled by: @admin
+   Reason: User requested to withdraw
+   Timestamp: 2025-12-15 10:30 UTC
+   ```
+4. A new winner is selected
+
+### Shipping Details Collection
+
+After winner is announced:
+
+1. Winner clicks **"📦 Submit Shipping Details"** (only works for winner)
+2. Winner fills out shipping form:
+   - Full Name
+   - Street Address
+   - City, State, ZIP
+   - Country
+   - Phone (optional)
+3. Details are posted to admin thread:
+   ```
+   📦 Shipping Details Received
+
+   Winner: @username
+
+   Name: John Doe
+   Address: 123 Main Street
+   City/State/ZIP: New York, NY 10001
+   Country: United States
+   Phone: +1 (555) 123-4567
+
+   ✅ Ready to ship!
+   ```
 
 ---
 

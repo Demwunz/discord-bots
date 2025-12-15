@@ -17,7 +17,10 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Commands.ExtendRaffle
   alias RaffleBot.Discord.Modals.RaffleSetup
   alias RaffleBot.Discord.Modals.PaymentConfirm
+  alias RaffleBot.Discord.Modals.RerollReason
+  alias RaffleBot.Discord.Modals.ShippingDetails
   alias RaffleBot.Discord.Selects.MarkPaidRaffle
+  alias RaffleBot.Discord.Selects.PickWinner, as: PickWinnerSelect
   alias RaffleBot.Discord.Selects.MarkPaidUser
   alias RaffleBot.Discord.Selects.PaymentPlatform
   alias RaffleBot.Discord.Buttons.ClaimSpots
@@ -32,6 +35,10 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Buttons.MySpots
   alias RaffleBot.Discord.Buttons.ControlPanelCreateRaffle
   alias RaffleBot.Discord.Buttons.ControlPanelListRaffles
+  alias RaffleBot.Discord.Buttons.AdminPickWinner
+  alias RaffleBot.Discord.Buttons.ConfirmWinner
+  alias RaffleBot.Discord.Buttons.RerollWinner
+  alias RaffleBot.Discord.Buttons.SubmitShipping
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
   alias RaffleBot.Discord.Authorization
@@ -83,6 +90,12 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"custom_id" => "payment_confirm_modal_" <> _rest} ->
             PaymentConfirm.handle(interaction)
+
+          %{"custom_id" => "reroll_reason_modal_" <> _rest} ->
+            RerollReason.handle(interaction)
+
+          %{"custom_id" => "shipping_details_modal_" <> _rest} ->
+            ShippingDetails.handle(interaction)
 
           _ ->
             :noop
@@ -136,6 +149,19 @@ defmodule RaffleBot.Discord.Consumer do
             # Just delete the prompt message
             :noop
 
+          # Winner selection buttons
+          %{"custom_id" => "admin_panel_pick_winner_" <> _rest} ->
+            handle_admin_command(interaction, &AdminPickWinner.handle/1)
+
+          %{"custom_id" => "confirm_winner_" <> _rest} ->
+            handle_admin_command(interaction, &ConfirmWinner.handle/1)
+
+          %{"custom_id" => "reroll_winner_" <> _rest} ->
+            handle_admin_command(interaction, &RerollWinner.handle/1)
+
+          %{"custom_id" => "submit_shipping_" <> _rest} ->
+            SubmitShipping.handle(interaction)
+
           # User utility buttons
           %{"custom_id" => "my_spots_" <> _rest} ->
             MySpots.handle(interaction)
@@ -155,6 +181,10 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"custom_id" => "extend_raffle_select"} ->
             ExtendRaffle.handle(interaction)
+
+          # Winner selection
+          %{"custom_id" => "pick_winner_select"} ->
+            handle_admin_command(interaction, &PickWinnerSelect.handle/1)
 
           # Payment platform selection
           %{"custom_id" => "payment_platform_select_" <> _rest} ->

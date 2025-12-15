@@ -7,6 +7,8 @@ defmodule RaffleBot.Raffles do
   alias RaffleBot.Repo
 
   alias RaffleBot.Raffles.Raffle
+  alias RaffleBot.Raffles.WinnerReroll
+  alias RaffleBot.Claims
 
   alias RaffleBot.Closer
 
@@ -68,5 +70,84 @@ defmodule RaffleBot.Raffles do
       active: false,
       closed_at: DateTime.utc_now()
     })
+  end
+
+  # Winner Selection Functions
+
+  @doc """
+  Selects a random winner from paid claims using weighted random selection.
+  Each paid spot = 1 entry. Returns the winning claim.
+  """
+  def select_random_winner(raffle_id) do
+    paid_claims = Claims.get_paid_claims_for_raffle(raffle_id)
+
+    if Enum.empty?(paid_claims) do
+      {:error, :no_paid_claims}
+    else
+      # Weighted random: each claim is one entry
+      winning_claim = Enum.random(paid_claims)
+      {:ok, winning_claim}
+    end
+  end
+
+  @doc """
+  Gets all spots owned by a user in a raffle.
+  """
+  def get_user_spots(raffle_id, user_id) do
+    Claims.get_user_claims_for_raffle(user_id, raffle_id)
+    |> Enum.map(& &1.spot_number)
+    |> Enum.sort()
+  end
+
+  @doc """
+  Sets the winner for a raffle.
+  """
+  def set_winner(%Raffle{} = raffle, user_id, spot_number) do
+    update_raffle(raffle, %{
+      winner_user_id: to_string(user_id),
+      winner_spot_number: spot_number,
+      winner_announced_at: DateTime.utc_now()
+    })
+  end
+
+  @doc """
+  Updates shipping details for a raffle winner.
+  """
+  def update_shipping_details(%Raffle{} = raffle, shipping_details) do
+    update_raffle(raffle, %{
+      shipping_details: shipping_details,
+      shipping_submitted_at: DateTime.utc_now()
+    })
+  end
+
+  @doc """
+  Records a winner re-roll for audit purposes.
+  """
+  def record_reroll(attrs) do
+    %WinnerReroll{}
+    |> WinnerReroll.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Gets all re-rolls for a raffle.
+  """
+  def list_rerolls(raffle_id) do
+    from(r in WinnerReroll,
+      where: r.raffle_id == ^raffle_id,
+      order_by: [desc: r.rerolled_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Lists closed raffles that don't have a winner yet.
+  """
+  def list_closed_raffles_without_winner() do
+    from(r in Raffle,
+      where: r.active == false,
+      where: is_nil(r.winner_user_id)
+    )
+    |> Repo.all()
   end
 end
