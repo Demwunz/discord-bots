@@ -1,10 +1,12 @@
 # Product Requirements Document (PRD)
 **Project Name:** Discord Raffle Bot (Elixir/Phoenix)
 **App Location:** `apps/raffle_bot`
-**Version:** 2.0 (Elixir Pivot)
+**Version:** 2.1 (Control Panel)
 
 ## 1. Executive Summary
 The Discord Raffle Bot is a persistent, fault-tolerant application designed to automate the management of paid community raffles. It replaces manual spreadsheet tracking with a real-time, database-backed system that handles spot claiming, payment verification, and transparent winner selection.
+
+**Version 2.1 adds the Admin Control Panel** - a pinned forum post in the admin channel that provides a centralized, discoverable interface for creating and managing raffles without needing to remember slash commands.
 
 ## 2. Functional Requirements
 
@@ -51,40 +53,57 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
         * "Pay for your spots" button posted to thread
         * Admins notified in admin forum thread
 
-### 2.3 Self-Service Payment Flow (New in v2.0)
+### 2.3 Self-Service Payment Flow (Updated in v2.1)
 
-**Version 2.0 Update:** Users can now mark their own spots as paid for admin verification.
+**Version 2.1 Update:** Payment details hidden from main embed; users see them only when paying. Payment platform info collected.
 
-* **Trigger:** User clicks "💰 Pay for Your Spots" button (posted when raffle sells out).
+* **Trigger:** User clicks "💰 Pay for Your Spots" button (shown via My Spots).
 * **Interaction Flow:**
     1.  Bot shows **Ephemeral Payment Details**:
-        * User's claimed spots
+        * User's claimed spots (aggregated total, not per-spot)
         * Total amount ($price × spot count)
-        * Payment instructions (Venmo, PayPal, etc.)
+        * Payment instructions (Venmo, PayPal, etc.) - **only shown here, not in main embed**
         * "✅ Mark as Paid" button
     2.  User completes payment externally
     3.  User clicks "Mark as Paid"
+    4.  **NEW:** Bot shows **Payment Confirmation Modal** asking:
+        * Payment platform selection (Venmo/PayPal/Zelle)
+        * Username/email used for payment
+    5.  User submits modal
 * **Post-Action:**
-    1.  **Database:** Set `user_marked_paid = true`, `user_marked_paid_at = DateTime.utc_now()`
-    2.  **Visual Update:** Spot buttons update to yellow/gray ✅ @username (pending admin verification)
-    3.  **Admin Notification:** Message posted to admin forum thread:
-        * User mention
-        * Spots and amount
-        * "✅ Confirm Payment" and "❌ Reject" buttons
+    1.  **Database:** Set `user_marked_paid = true`, `user_marked_paid_at = DateTime.utc_now()` for ALL user's claims at once
+    2.  **Visual Update:** All user's spot buttons update from `[#. @user 💵]` to `[#. @user 💸]` (user marked paid)
+    3.  **Admin Thread Notification:** Message posted to raffle's admin thread:
+        ```
+        💸 Spots #2, #3, #4 claimed by @user marked paid
+        Venmo: `@username` • $30
+        [Confirmed] [Unconfirmed]
+        ```
+
+**Button States (5 states, always show spot number first):**
+| # | State | Button Format | Style |
+|---|-------|---------------|-------|
+| 1 | Available | `[1. Claim]` | Blue (Primary) |
+| 2 | Claimed (raffle not full) | `[1. @user]` | Gray (Secondary) |
+| 3 | Payment pending (raffle full) | `[1. @user 💵]` | Gray (Secondary) |
+| 4 | User marked paid | `[1. @user 💸]` | Gray (Secondary) |
+| 5 | Admin confirmed | `[1. @user ✅]` | Green (Success) |
+
+**Note:** The 💵 emoji only appears when the raffle is sold out (all spots claimed), indicating it's time to pay.
 
 ### 2.4 Admin Payment Confirmation (New in v2.0)
 
 **Version 2.0 Update:** Admins verify payments directly from admin forum threads.
 
-* **Trigger:** Admin clicks "✅ Confirm Payment" in admin thread notification.
+* **Trigger:** Admin clicks **"Confirmed"** button in admin thread notification.
 * **Post-Action:**
     1.  **Database:** Set `is_paid = true`
-    2.  **Visual Update:** Spot buttons turn green ✅ @username
-    3.  **Admin Thread:** Confirmation message updated to show completed
+    2.  **Visual Update:** Spot buttons turn green `[#. @user ✅]`
+    3.  **Admin Thread:** Buttons disabled after action
 
-* **Reject Flow:** Admin clicks "❌ Reject"
+* **Unconfirmed Flow:** Admin clicks **"Unconfirmed"** button
     1.  **Database:** Reset `user_marked_paid = false`
-    2.  **Visual Update:** Spot buttons return to gray @username
+    2.  **Visual Update:** Spot buttons return to `[#. @user 💵]`
     3.  User can mark as paid again after actual payment
 
 ### 2.5 Legacy Payment Tracking (`/mark_paid`)
@@ -131,11 +150,74 @@ The Discord Raffle Bot is a persistent, fault-tolerant application designed to a
     1. Admin runs command from the desired admin channel.
     2. Bot automatically detects admin channel from command invocation location.
     3. Bot stores guild configuration in database.
-    4. Bot confirms configuration with ephemeral success message.
+    4. **Bot creates a pinned Control Panel post in the admin forum channel.**
+    5. Bot confirms configuration with ephemeral success message including link to Control Panel.
 * **Post-Action:**
     1. Guild configuration created/updated in database.
-    2. Authorization enabled for all admin commands.
-    3. Channel validation activated (soft warnings).
+    2. **Control Panel forum thread created in admin channel** (see Section 2.10).
+    3. Control Panel thread/message IDs stored in guild configuration.
+    4. Authorization enabled for all admin commands.
+    5. Channel validation activated (soft warnings).
+
+### 2.10 Admin Control Panel (New in v2.1)
+
+**Purpose:** Provides a centralized, discoverable location for raffle management within the admin forum channel.
+
+* **Creation:** Automatically created when `/setup_raffle_admin` is run.
+* **Location:** Pinned forum thread in the configured admin channel.
+* **Thread Name:** "🎰 Raffle Control Panel"
+
+#### Control Panel Components
+
+**Embed:**
+* Title: "🎰 Raffle Control Panel"
+* Description: Welcome message with quick action instructions
+* Fields:
+    * Active Raffles count (updates dynamically)
+* Color: Discord Blurple (`0x5865F2`)
+* Footer: "Raffle Bot | Admin Panel"
+
+**Buttons:**
+| Button | Style | Action |
+|--------|-------|--------|
+| 🎟️ Create New Raffle | Green (Success) | Opens raffle setup modal |
+| 📋 List Active Raffles | Blue (Primary) | Shows ephemeral list of active raffles |
+
+#### Button Interactions
+
+**Create New Raffle (`control_panel_create_raffle`):**
+* Opens the same modal form as `/setup_raffle` command
+* Modal fields: Title, Price, Total Spots, Grading Link, Description
+* On submit: Creates user thread + admin thread (existing flow)
+* Authorization: Requires Bot Boss role
+
+**List Active Raffles (`control_panel_list_raffles`):**
+* Returns ephemeral embed with all active raffles
+* Each raffle shows: Title, Price, Thread link
+* If no active raffles: Helpful message to create one
+* Authorization: Requires Bot Boss role
+
+#### Channel Structure (After Setup)
+
+```
+#raffle-admin (Forum Channel)
+├── 📌 🎰 Raffle Control Panel (Pinned Thread)
+│   └── Control Panel embed + buttons
+│   └── [Create New Raffle] → Opens modal
+│   └── [List Active Raffles] → Shows active raffles
+│
+├── 🎯 Spawn #1 CGC 9.8 (Admin Thread - auto-created)
+│   └── Admin controls for this specific raffle
+│
+└── 🎯 Amazing Spider-Man #300 (Admin Thread - auto-created)
+    └── Admin controls for this specific raffle
+```
+
+#### Data Storage
+
+**GuildConfiguration Schema Updates:**
+* `control_panel_thread_id` - Forum thread ID for the control panel
+* `control_panel_message_id` - Message ID of the control panel embed
 
 ### 2.7 Guild Reconfiguration (`/configure_raffle_admin`)
 * **Trigger:** Admin Slash Command.

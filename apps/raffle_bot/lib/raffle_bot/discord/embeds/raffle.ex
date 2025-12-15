@@ -38,9 +38,8 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
       "🇺🇸 US: #{raffle.us_shipping || "Free USPS Ground Advantage"}",
       build_international_shipping(raffle.international_shipping),
       "",
-      # Payment section
-      "💳 **Payment:**",
-      "Only collected once all spots are full — #{build_payment_details(raffle.payment_details)}"
+      # Payment note (details shown only when paying)
+      "💳 Payment collected once all spots are full — click **My Spots** to pay."
     ]
 
     sections
@@ -111,6 +110,9 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
     start_spot = (page - 1) * spots_per_page + 1
     end_spot = min(page * spots_per_page, raffle.total_spots)
 
+    # Check if raffle is sold out (determines if we show payment pending icons)
+    is_sold_out = length(claims) >= raffle.total_spots
+
     # Build button grid (4 rows × 5 buttons for spots)
     spot_rows =
       start_spot..end_spot
@@ -118,7 +120,7 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
       |> Enum.map(fn spot_numbers ->
         %{
           type: 1,  # Action row
-          components: Enum.map(spot_numbers, &build_spot_button(raffle, claims, &1))
+          components: Enum.map(spot_numbers, &build_spot_button(raffle, claims, &1, is_sold_out))
         }
       end)
 
@@ -148,15 +150,16 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
   end
 
   # Builds a single spot button based on its claim status.
-  # Button States:
-  #   - Available: Blue primary button with numbered claim label
-  #   - Claimed (unpaid): Gray secondary button with @username, disabled
-  #   - User marked as paid (pending admin confirmation): Gray with 💵 @username
-  #   - Admin confirmed paid: Green success button with ✅ @username, disabled
-  defp build_spot_button(raffle, claims, spot_number) do
+  # Button States (5 states, always show spot number first):
+  #   1. Available: Blue [#. Claim]
+  #   2. Claimed (raffle not full): Gray [#. @user] - no emoji
+  #   3. Payment pending (raffle full): Gray [#. @user 💵]
+  #   4. User marked paid: Gray [#. @user 💸]
+  #   5. Admin confirmed: Green [#. @user ✅]
+  defp build_spot_button(raffle, claims, spot_number, is_sold_out) do
     case find_claim(claims, spot_number) do
       nil ->
-        # Available spot - numbered claim button
+        # State 1: Available spot - numbered claim button
         %{
           type: 2,  # Button
           style: 1,  # Primary (blue)
@@ -165,34 +168,46 @@ defmodule RaffleBot.Discord.Embeds.Raffle do
         }
 
       %{is_paid: true, user_id: user_id} ->
-        # Admin confirmed paid spot
+        # State 5: Admin confirmed paid
         %{
           type: 2,
           style: 3,  # Success (green)
-          label: truncate_username(format_username(user_id), 72) <> " ✅",
+          label: "#{spot_number}. " <> truncate_username(format_username(user_id), 70) <> " ✅",
           custom_id: "confirmed_paid_#{raffle.id}_#{spot_number}",
           disabled: true
         }
 
       %{user_marked_paid: true, user_id: user_id} ->
-        # User marked as paid (pending admin confirmation) - money emoji indicates pending
+        # State 4: User marked as paid (pending admin confirmation)
         %{
           type: 2,
           style: 2,  # Secondary (gray)
-          label: "💵 " <> truncate_username(format_username(user_id), 75),
+          label: "#{spot_number}. " <> truncate_username(format_username(user_id), 70) <> " 💸",
           custom_id: "user_paid_#{raffle.id}_#{spot_number}",
           disabled: true
         }
 
       %{user_id: user_id} ->
-        # Claimed but unpaid
-        %{
-          type: 2,
-          style: 2,  # Secondary (gray)
-          label: truncate_username(format_username(user_id), 80),
-          custom_id: "claimed_#{raffle.id}_#{spot_number}",
-          disabled: true
-        }
+        # State 2 or 3: Claimed but unpaid
+        if is_sold_out do
+          # State 3: Payment pending (raffle is full)
+          %{
+            type: 2,
+            style: 2,  # Secondary (gray)
+            label: "#{spot_number}. " <> truncate_username(format_username(user_id), 70) <> " 💵",
+            custom_id: "claimed_#{raffle.id}_#{spot_number}",
+            disabled: true
+          }
+        else
+          # State 2: Just claimed (raffle still has open spots)
+          %{
+            type: 2,
+            style: 2,  # Secondary (gray)
+            label: "#{spot_number}. " <> truncate_username(format_username(user_id), 74),
+            custom_id: "claimed_#{raffle.id}_#{spot_number}",
+            disabled: true
+          }
+        end
     end
   end
 

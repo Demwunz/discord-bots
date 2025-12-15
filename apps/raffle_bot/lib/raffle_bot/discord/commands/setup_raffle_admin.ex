@@ -9,10 +9,14 @@ defmodule RaffleBot.Discord.Commands.SetupRaffleAdmin do
   - Admin channel (inferred from where command is invoked)
   - User channel (parameter)
   - Bot Boss role (parameter)
+  - Control Panel (created automatically in admin channel)
   """
 
   use RaffleBot.Discord.ApiConsumer
   alias RaffleBot.GuildConfig
+  alias RaffleBot.Discord.Components.ControlPanel
+
+  require Logger
 
   def handle(interaction) do
     # Extract parameters from interaction
@@ -30,9 +34,20 @@ defmodule RaffleBot.Discord.Commands.SetupRaffleAdmin do
       }
 
       case GuildConfig.upsert_guild_config(attrs) do
-        {:ok, _config} ->
-          success_response(admin_channel_id, user_channel_id, bot_boss_role_id)
-          |> send_response(interaction)
+        {:ok, config} ->
+          # Create control panel in admin channel
+          case create_control_panel(admin_channel_id, config) do
+            {:ok, thread_id} ->
+              success_response(admin_channel_id, user_channel_id, bot_boss_role_id, thread_id)
+              |> send_response(interaction)
+
+            {:error, reason} ->
+              # Config saved but control panel creation failed
+              Logger.warning("Failed to create control panel: #{inspect(reason)}")
+
+              success_response_no_panel(admin_channel_id, user_channel_id, bot_boss_role_id)
+              |> send_response(interaction)
+          end
 
         {:error, changeset} ->
           error_response(changeset)
@@ -42,6 +57,31 @@ defmodule RaffleBot.Discord.Commands.SetupRaffleAdmin do
       {:error, reason} ->
         error_response(reason)
         |> send_response(interaction)
+    end
+  end
+
+  # Creates the control panel forum thread in the admin channel
+  defp create_control_panel(admin_channel_id, config) do
+    # Build control panel message
+    message = ControlPanel.build_message([])
+
+    # Create forum thread
+    case discord_api().start_forum_thread(
+           admin_channel_id,
+           "🎰 Raffle Control Panel",
+           message
+         ) do
+      {:ok, %{"id" => thread_id, "message" => %{"id" => message_id}}} ->
+        # Update config with control panel IDs
+        GuildConfig.update_guild_config(config, %{
+          control_panel_thread_id: thread_id,
+          control_panel_message_id: message_id
+        })
+
+        {:ok, thread_id}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -72,7 +112,7 @@ defmodule RaffleBot.Discord.Commands.SetupRaffleAdmin do
     end
   end
 
-  defp success_response(admin_channel_id, user_channel_id, bot_boss_role_id) do
+  defp success_response(admin_channel_id, user_channel_id, bot_boss_role_id, control_panel_thread_id) do
     %{
       type: 4,
       data: %{
@@ -83,12 +123,33 @@ defmodule RaffleBot.Discord.Commands.SetupRaffleAdmin do
         **User Channel:** <##{user_channel_id}>
         **Bot Boss Role:** <@&#{bot_boss_role_id}>
 
-        Admin commands should now be used in <##{admin_channel_id}>.
-        Users with the Bot Boss role can access admin commands.
+        🎰 **Control Panel:** <##{control_panel_thread_id}>
+        Use the Control Panel to create and manage raffles!
 
         You can update this configuration anytime with `/configure_raffle_admin`.
         """,
-        flags: 64  # Ephemeral
+        flags: 64
+      }
+    }
+  end
+
+  defp success_response_no_panel(admin_channel_id, user_channel_id, bot_boss_role_id) do
+    %{
+      type: 4,
+      data: %{
+        content: """
+        ✅ **Raffle Bot Configured Successfully!**
+
+        **Admin Channel:** <##{admin_channel_id}> (this channel)
+        **User Channel:** <##{user_channel_id}>
+        **Bot Boss Role:** <@&#{bot_boss_role_id}>
+
+        ⚠️ Control Panel could not be created automatically.
+        You can still use `/setup_raffle` to create raffles.
+
+        You can update this configuration anytime with `/configure_raffle_admin`.
+        """,
+        flags: 64
       }
     }
   end

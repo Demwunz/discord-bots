@@ -2,15 +2,15 @@ defmodule RaffleBot.Discord.Buttons.MarkSelfPaid do
   @moduledoc """
   Handles user self-marking their spots as paid.
 
+  Shows a payment platform select menu, then collects username via modal.
   Updates claims to user_marked_paid = true, refreshes buttons,
-  and sends notification to admin thread for verification.
+  and sends notification to both raffle thread and admin thread.
   """
 
   use RaffleBot.Discord.ApiConsumer
   alias Nostrum.Struct.Interaction
   alias RaffleBot.Raffles
   alias RaffleBot.Claims
-  alias RaffleBot.Discord.Helpers.ButtonRefresher
 
   def handle(%Interaction{data: %{"custom_id" => "mark_self_paid_" <> raffle_id}} = interaction) do
     user_id = interaction.user.id
@@ -19,103 +19,65 @@ defmodule RaffleBot.Discord.Buttons.MarkSelfPaid do
 
     if length(user_claims) == 0 do
       # User has no claims
-      discord_api().edit_interaction_response(
+      discord_api().create_interaction_response(
         interaction,
+        4,
         %{
           content: "❌ You don't have any spots claimed in this raffle.",
-          components: []
+          flags: 64
         }
       )
     else
-      # Update all user's claims to marked as paid
-      Enum.each(user_claims, fn claim ->
-        Claims.update_claim(claim, %{
-          user_marked_paid: true,
-          user_marked_paid_at: DateTime.utc_now()
-        })
-      end)
+      # Check if already marked as paid
+      already_paid = Enum.any?(user_claims, & &1.user_marked_paid)
 
-      # Refresh raffle buttons to show pending payment status
-      ButtonRefresher.refresh_raffle_buttons(raffle_id)
+      if already_paid do
+        discord_api().create_interaction_response(
+          interaction,
+          4,
+          %{
+            content: "✅ You've already marked your spots as paid. An admin will verify your payment soon.",
+            flags: 64
+          }
+        )
+      else
+        # Calculate total for display
+        total_amount = length(user_claims) * raffle.price
+        spot_count = length(user_claims)
 
-      # Send notification to admin thread
-      send_admin_notification(raffle, user_id, user_claims)
+        # Show payment platform select menu
+        discord_api().create_interaction_response(
+          interaction,
+          4,
+          %{
+            content: """
+            💳 **Select Payment Method**
 
-      # Calculate total
-      total_amount = length(user_claims) * raffle.price
-      spot_numbers = Enum.map(user_claims, & &1.spot_number) |> Enum.sort()
-      spot_list = format_spot_list(spot_numbers)
+            You're marking **#{spot_count} spot(s)** as paid — **$#{total_amount}** total.
 
-      # Update ephemeral response
-      discord_api().edit_interaction_response(
-        interaction,
-        %{
-          content: """
-          ✅ **Marked as Paid**
-
-          Your payment for #{spot_list} ($#{total_amount}) has been marked.
-          An admin will verify your payment and update the raffle.
-
-          Thank you!
-          """,
-          components: []
-        }
-      )
+            Which platform did you use to pay?
+            """,
+            components: [
+              %{
+                type: 1,
+                components: [
+                  %{
+                    type: 3,
+                    custom_id: "payment_platform_select_#{raffle_id}",
+                    placeholder: "Select payment platform...",
+                    options: [
+                      %{label: "Venmo", value: "venmo", emoji: %{name: "💜"}},
+                      %{label: "PayPal", value: "paypal", emoji: %{name: "💙"}},
+                      %{label: "Zelle", value: "zelle", emoji: %{name: "💚"}}
+                    ]
+                  }
+                ]
+              }
+            ],
+            flags: 64
+          }
+        )
+      end
     end
-  end
-
-  defp send_admin_notification(raffle, user_id, user_claims) do
-    if raffle.admin_thread_id do
-      total_amount = length(user_claims) * raffle.price
-      spot_numbers = Enum.map(user_claims, & &1.spot_number) |> Enum.sort()
-      spot_list = format_spot_list(spot_numbers)
-
-      content = """
-      💵 **Payment Marked by User**
-
-      <@#{user_id}> marked their spots as paid:
-      **Spots:** #{spot_list}
-      **Amount:** $#{total_amount}
-
-      Please verify payment and confirm below.
-      """
-
-      components = [
-        %{
-          type: 1,
-          components: [
-            %{
-              type: 2,
-              style: 3,
-              label: "✅ Confirm Payment",
-              custom_id: "admin_confirm_payment_#{raffle.id}_#{user_id}"
-            },
-            %{
-              type: 2,
-              style: 4,
-              label: "❌ Reject",
-              custom_id: "admin_reject_payment_#{raffle.id}_#{user_id}"
-            }
-          ]
-        }
-      ]
-
-      discord_api().create_message(
-        raffle.admin_thread_id,
-        "",
-        [
-          content: content,
-          components: components
-        ]
-      )
-    end
-  end
-
-  defp format_spot_list(spots) when length(spots) <= 5 do
-    Enum.map_join(spots, ", ", &"##{&1}")
-  end
-
-  defp format_spot_list(spots) do
-    "#{length(spots)} spots (##{Enum.min(spots)}-##{Enum.max(spots)})"
   end
 end

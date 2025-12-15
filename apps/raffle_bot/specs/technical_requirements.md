@@ -169,6 +169,8 @@ config :raffle_bot, RaffleBot.Repo,
 | `admin_channel_id` | TEXT | Channel for admin commands |
 | `user_channel_id` | TEXT | Channel for raffle posts |
 | `bot_boss_role_id` | TEXT | Role required for admin commands |
+| `control_panel_thread_id` | TEXT | Forum thread ID for Control Panel (nullable) |
+| `control_panel_message_id` | TEXT | Message ID of Control Panel embed (nullable) |
 | `timestamps` | UTC Datetime | `inserted_at`, `updated_at` |
 
 **Constraints:**
@@ -178,6 +180,7 @@ config :raffle_bot, RaffleBot.Repo,
 * Stores per-guild configuration for authorization and channel validation
 * Created via `/setup_raffle_admin` command
 * Updated via `/configure_raffle_admin` command
+* Control Panel IDs stored after initial setup (v2.1+)
 
 ### 2.4 UI Architecture: Forum-Based Raffle System
 
@@ -189,9 +192,44 @@ config :raffle_bot, RaffleBot.Repo,
   - Public access for all server members
 
 * **Admin Channel** (`admin_channel_id`): Forum channel (e.g., `#raffle-admin`)
+  - **Control Panel**: Pinned forum thread for centralized raffle management (v2.1+)
   - Each raffle = separate admin forum thread
   - Thread contains admin controls and payment notifications
   - Only visible to users with channel access permissions
+
+### 2.5 Control Panel (v2.1+)
+
+**Purpose:** Provides a centralized, discoverable interface for raffle management without slash commands.
+
+**Creation Flow:**
+1. Admin runs `/setup_raffle_admin` with required parameters
+2. Guild configuration saved to database
+3. Bot creates forum thread in admin channel with title "Raffle Control Panel"
+4. Control Panel embed + buttons posted as thread starter
+5. Thread/message IDs stored in `guild_configurations` table
+
+**Control Panel Embed:**
+* Title: "Raffle Control Panel"
+* Description: Quick action instructions
+* Fields: Active Raffles count
+* Color: Discord Blurple (`0x5865F2`)
+* Footer: "Raffle Bot | Admin Panel"
+
+**Control Panel Buttons:**
+| Button | Style | Custom ID | Action |
+|--------|-------|-----------|--------|
+| Create New Raffle | Green (3) | `control_panel_create_raffle` | Opens raffle setup modal |
+| List Active Raffles | Blue (1) | `control_panel_list_raffles` | Shows ephemeral raffle list |
+
+**Button Handlers:**
+* `RaffleBot.Discord.Buttons.ControlPanelCreateRaffle` - Opens modal
+* `RaffleBot.Discord.Buttons.ControlPanelListRaffles` - Returns ephemeral embed
+
+**Component Module:** `RaffleBot.Discord.Components.ControlPanel`
+* `build_embed/1` - Builds Control Panel embed
+* `build_buttons/0` - Builds action buttons
+* `build_message/1` - Combines embed + buttons
+* `build_active_raffles_embed/1` - Builds list of active raffles
 
 **Button-Based Spot Claiming:**
 * Discord limit: 25 buttons per message (5 rows × 5 buttons)
@@ -203,6 +241,8 @@ config :raffle_bot, RaffleBot.Repo,
   4. **Admin confirmed**: Green success button (✅ @username)
 
 **Custom ID Patterns:**
+* Control Panel create: `control_panel_create_raffle`
+* Control Panel list: `control_panel_list_raffles`
 * Spot claim: `claim_spot_{raffle_id}_{spot_number}`
 * Claim confirmation: `confirm_claim_{raffle_id}_{spot_number}`
 * Payment info: `payment_info_{raffle_id}`
@@ -534,6 +574,6 @@ For common issues and solutions, see [Troubleshooting Guide](../../docs/operatio
 
 ---
 
-**Document Version:** 2.0
+**Document Version:** 2.1
 **Last Review:** December 2025
 **Maintained By:** Project Team

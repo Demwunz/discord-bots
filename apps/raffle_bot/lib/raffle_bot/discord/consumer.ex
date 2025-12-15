@@ -16,8 +16,10 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Commands.EndRaffle
   alias RaffleBot.Discord.Commands.ExtendRaffle
   alias RaffleBot.Discord.Modals.RaffleSetup
+  alias RaffleBot.Discord.Modals.PaymentConfirm
   alias RaffleBot.Discord.Selects.MarkPaidRaffle
   alias RaffleBot.Discord.Selects.MarkPaidUser
+  alias RaffleBot.Discord.Selects.PaymentPlatform
   alias RaffleBot.Discord.Buttons.ClaimSpots
   alias RaffleBot.Discord.Buttons.ClaimSpotButton
   alias RaffleBot.Discord.Buttons.ConfirmClaim
@@ -28,6 +30,8 @@ defmodule RaffleBot.Discord.Consumer do
   alias RaffleBot.Discord.Buttons.AdminRejectPayment
   alias RaffleBot.Discord.Buttons.AdminAddPhotos
   alias RaffleBot.Discord.Buttons.MySpots
+  alias RaffleBot.Discord.Buttons.ControlPanelCreateRaffle
+  alias RaffleBot.Discord.Buttons.ControlPanelListRaffles
   alias RaffleBot.Discord.Selects.ClaimSpot
   alias RaffleBot.Discord.Selects.ExtendRaffle
   alias RaffleBot.Discord.Authorization
@@ -77,6 +81,9 @@ defmodule RaffleBot.Discord.Consumer do
           %{"custom_id" => "raffle_setup_modal"} ->
             RaffleSetup.handle(interaction)
 
+          %{"custom_id" => "payment_confirm_modal_" <> _rest} ->
+            PaymentConfirm.handle(interaction)
+
           _ ->
             :noop
         end
@@ -91,6 +98,13 @@ defmodule RaffleBot.Discord.Consumer do
     task =
       Task.async(fn ->
         case data do
+          # Control Panel button handlers
+          %{"custom_id" => "control_panel_create_raffle"} ->
+            handle_admin_command(interaction, &ControlPanelCreateRaffle.handle/1)
+
+          %{"custom_id" => "control_panel_list_raffles"} ->
+            handle_admin_command(interaction, &ControlPanelListRaffles.handle/1)
+
           # New per-spot button handlers
           %{"custom_id" => "claim_spot_" <> _rest} ->
             ClaimSpotButton.handle(interaction)
@@ -141,6 +155,10 @@ defmodule RaffleBot.Discord.Consumer do
 
           %{"custom_id" => "extend_raffle_select"} ->
             ExtendRaffle.handle(interaction)
+
+          # Payment platform selection
+          %{"custom_id" => "payment_platform_select_" <> _rest} ->
+            PaymentPlatform.handle(interaction)
 
           _ ->
             :noop
