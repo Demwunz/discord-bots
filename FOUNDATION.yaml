@@ -1,0 +1,25 @@
+# AI Project Foundation
+# This file declares this project uses the AI Project Foundation governance model.
+
+version: "2.4.5"
+governance: true
+mode: lite  # Brownfield adoption - lite governance
+
+# Documentation
+docs:
+  capabilities: project.capabilities.json
+  claude: CLAUDE.md
+
+# Pipeline configuration
+pipelines:
+  analyze: enabled
+  plan: enabled
+  execute: enabled
+  review: enabled
+  commit: enabled
+
+# Brownfield adoption metadata
+adoption:
+  date: "2025-12-26"
+  source: "existing-project"
+  analysis: "analysis/findings.json"

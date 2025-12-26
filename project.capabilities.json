@@ -1,0 +1,33 @@
+{
+  "project_name": "discord-bots",
+  "governance": {
+    "mode": "lite",
+    "adopted": "2025-12-26",
+    "source": "brownfield"
+  },
+  "structure": {
+    "type": "elixir-umbrella",
+    "description": "Monorepo containing multiple Discord bot applications"
+  },
+  "capabilities": {
+    "shared": [
+      "Discord API integration via Nostrum",
+      "Database persistence via Ecto"
+    ],
+    "note": "Per-app capabilities defined in apps/*/capabilities.json"
+  },
+  "constraints": {
+    "languages": ["elixir"],
+    "frameworks": ["nostrum"],
+    "runtime": "BEAM/OTP"
+  },
+  "dependencies": {
+    "shared": ["ecto", "nostrum", "jason"]
+  },
+  "apps": {
+    "raffle_bot": {
+      "path": "apps/raffle_bot",
+      "capabilities": "apps/raffle_bot/capabilities.json"
+    }
+  }
+}

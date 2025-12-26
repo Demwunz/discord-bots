@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-12-25T19:47:36Z",
+  "version": "1.0.0",
+  "project": {
+    "language": "unknown",
+    "entry_points": null,
+    "structure": "flat",
+    "governance": {
+      "has_foundation_yaml": false,
+      "has_capabilities": false,
+      "has_claude_md": true,
+      "has_openspec": false,
+      "has_specs": false,
+      "has_prd": false
+    },
+    "metrics": {
+      "total_files": 0,
+      "total_dirs": 0,
+      "source_files": 0,
+      "test_files": 0,
+      "doc_files": 0
+    }
+  },
+  "context": {
+    "has_context_dir": false,
+    "has_product_md": false,
+    "has_tech_md": false,
+    "has_workflow_md": false
+  },
+  "risks": [
+    {
+      "category": "secrets",
+      "severity": "high",
+      "description": "Potential secrets file detected",
+      "location": ".env"
+    }
+  ],
+  "observations": [
+    {
+      "category": "structure",
+      "description": "Project structure type: flat"
+    }
+  ]
+}

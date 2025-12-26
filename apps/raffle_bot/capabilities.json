@@ -1,0 +1,15 @@
+{
+  "app_name": "raffle_bot",
+  "description": "Discord bot for managing raffles and giveaways",
+  "capabilities": {
+    "core": [
+      "Raffle creation and management",
+      "Giveaway functionality",
+      "Winner selection"
+    ]
+  },
+  "dependencies": {
+    "from_umbrella": ["ecto", "nostrum"],
+    "app_specific": []
+  }
+}
